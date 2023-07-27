@@ -24,16 +24,7 @@
       "location" : "git@github.com:PADL/MOM.git",
       "state" : {
         "branch" : "main",
-        "revision" : "a4837fa97fe6038fd8b70933f13ffd240fc05be2"
-      }
-    },
-    {
-      "identity" : "opencombine",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/OpenCombine/OpenCombine.git",
-      "state" : {
-        "revision" : "8576f0d579b27020beccbccc3ea6844f3ddfc2c2",
-        "version" : "0.14.0"
+        "revision" : "c38e6021a50907b2edec321a2fd9cb9c9c331559"
       }
     },
     {
@@ -69,7 +60,7 @@
       "location" : "git@github.com:PADL/SwiftOCA.git",
       "state" : {
         "branch" : "main",
-        "revision" : "0a4dab453e78658d23690f7bcd3ee4b32cd2c11e"
+        "revision" : "46bfb00e7483d9369818d53e51627ff195226540"
       }
     }
   ],
