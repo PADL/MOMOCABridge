@@ -1,0 +1,68 @@
+{
+  "pins" : [
+    {
+      "identity" : "asyncextensions",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/lhoward/AsyncExtensions",
+      "state" : {
+        "branch" : "linux",
+        "revision" : "2218eaa30dbdb39b063e92644fc28ed22e2cb942"
+      }
+    },
+    {
+      "identity" : "flyingfox",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swhitty/FlyingFox",
+      "state" : {
+        "branch" : "main",
+        "revision" : "8b195ab596666776815c68c614e7f061075945e9"
+      }
+    },
+    {
+      "identity" : "mom",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:PADL/MOM.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "7279e08df56c540b05de18932fe2c2f1cba9f4f1"
+      }
+    },
+    {
+      "identity" : "swift-async-algorithms",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-async-algorithms",
+      "state" : {
+        "revision" : "9cfed92b026c524674ed869a4ff2dcfdeedf8a2a",
+        "version" : "0.1.0"
+      }
+    },
+    {
+      "identity" : "swift-binary-coder",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PADL/swift-binary-coder",
+      "state" : {
+        "branch" : "inferno",
+        "revision" : "04f2070af1064759ebba432453c4ad182bc9a5e0"
+      }
+    },
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections.git",
+      "state" : {
+        "revision" : "937e904258d22af6e447a0b72c0bc67583ef64a2",
+        "version" : "1.0.4"
+      }
+    },
+    {
+      "identity" : "swiftoca",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:PADL/SwiftOCA.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "c7d11ab7f758033e6e7930c2988ba9396a8cbd9a"
+      }
+    }
+  ],
+  "version" : 2
+}
