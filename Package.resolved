@@ -24,7 +24,7 @@
       "location" : "git@github.com:PADL/MOM.git",
       "state" : {
         "branch" : "main",
-        "revision" : "c38e6021a50907b2edec321a2fd9cb9c9c331559"
+        "revision" : "c3a531498a993858b65d27004de9e002eb3c4289"
       }
     },
     {
@@ -60,7 +60,7 @@
       "location" : "git@github.com:PADL/SwiftOCA.git",
       "state" : {
         "branch" : "main",
-        "revision" : "46bfb00e7483d9369818d53e51627ff195226540"
+        "revision" : "dd34016bf0e14b2139a8cd91b309944f87b6c525"
       }
     }
   ],

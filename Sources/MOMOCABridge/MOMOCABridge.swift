@@ -23,6 +23,13 @@ import SwiftOCADevice
 
 extension MOMStatus: Error {}
 
+let kMOMRecoveryFirmwareTag = Surrogate.kMOMRecoveryFirmwareTag._nsObject
+let kMOMRecoveryFirmwareVersion = Surrogate.kMOMRecoveryFirmwareVersion._nsObject
+let kMOMDeviceID = Surrogate.kMOMDeviceID._nsObject
+let kMOMDeviceName = Surrogate.kMOMDeviceName._nsObject
+let kMOMSerialNumber = Surrogate.kMOMSerialNumber._nsObject
+let kMOMSystemTypeAndVersion = Surrogate.kMOMSystemTypeAndVersion._nsObject
+
 public actor MOMOCABridge {
     static var defaultDeviceID = 50
 
@@ -75,7 +82,7 @@ public actor MOMOCABridge {
 
         let momController = MOMControllerCreate(
             kCFAllocatorDefault,
-            options,
+            options._cfObject,
             RunLoop.main
                 .getCFRunLoop()
         ) { [weak self] (
@@ -87,7 +94,7 @@ public actor MOMOCABridge {
         ) -> MOMStatus in
             guard let self else { return .continue }
             Task<(), Never> {
-                var params = params as [AnyObject]
+                var params = params._swiftObject
                 var status = MOMStatus.continue
 
                 do {
@@ -97,7 +104,7 @@ public actor MOMOCABridge {
                     status = error
                 } catch {}
                 if let sendReply {
-                    _ = sendReply(controller, context, event, status, params as NSArray)
+                    _ = sendReply(controller, context, event, status, params._cfObject)
                 }
             }
             return .success
@@ -129,7 +136,7 @@ public actor MOMOCABridge {
             throw momDiscoverabilityStatus
         }
 
-        let options = MOMControllerGetOptions(momController) as NSMutableDictionary
+        let options = MOMControllerGetOptions(momController)._nsObject
         log(message: "begun discoverability with options \(options)")
 
         try await device.start()
@@ -153,11 +160,11 @@ public actor MOMOCABridge {
     }
 
     func notify(event: MOMEvent, params: [AnyObject]) {
-        MOMControllerNotify(momController, event, params as NSArray)
+        MOMControllerNotify(momController, event, params._cfObject)
     }
 
     func notifyDeferred(event: MOMEvent, params: [AnyObject]) {
-        MOMControllerNotifyDeferred(momController, event, params as NSArray)
+        MOMControllerNotifyDeferred(momController, event, params._cfObject)
     }
 
     func sendDeferred() {
@@ -176,19 +183,19 @@ extension MOMOCABridge {
 
     var deviceID: Int? {
         get {
-            userDefaults.object(forKey: kMOMDeviceID as String) as? Int
+            userDefaults.object(forKey: kMOMDeviceID._swiftObject) as? Int
         }
         set {
-            userDefaults.set(newValue, forKey: kMOMDeviceID as String)
+            userDefaults.set(newValue, forKey: kMOMDeviceID._swiftObject)
         }
     }
 
     var deviceName: String? {
         get {
-            userDefaults.object(forKey: kMOMDeviceName as String) as? String
+            userDefaults.object(forKey: kMOMDeviceName._swiftObject) as? String
         }
         set {
-            userDefaults.set(newValue, forKey: kMOMDeviceName as String)
+            userDefaults.set(newValue, forKey: kMOMDeviceName._swiftObject)
         }
     }
 }
