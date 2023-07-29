@@ -39,7 +39,13 @@ public actor MOMOCABridge {
     }
 
     public init(port: UInt16 = 65000) async throws {
-        var localAddress = sockaddr_in.inet(port: 65000)
+        var localAddress = sockaddr_in()
+        localAddress.sin_addr.s_addr = INADDR_ANY
+        localAddress.sin_port = port.bigEndian
+        #if canImport(Darwin)
+        localAddress.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        #endif
+
         var localAddressData = Data()
 
         withUnsafeBytes(of: &localAddress) { bytes in
