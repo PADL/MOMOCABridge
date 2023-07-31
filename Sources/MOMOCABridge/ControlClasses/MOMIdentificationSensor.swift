@@ -39,7 +39,7 @@ class MOMIdentificationSensor: SwiftOCADevice.OcaIdentificationSensor, MOMPanelC
     ) async throws -> Ocp1Response {
         do {
             return try await handleCommonMomCommand(command, from: controller)
-        } catch Ocp1Error.unhandledMethod {
+        } catch Ocp1Error.status(.notImplemented) {
             return try await super.handleCommand(command, from: controller)
         }
     }

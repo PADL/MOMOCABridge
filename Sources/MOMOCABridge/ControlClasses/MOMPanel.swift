@@ -49,9 +49,9 @@ extension MOMPanelControl {
             return try encodeResponse(await isConnectedToDadMan)
         case OcaMethodID("2.2"): // SetEnabled()
             try await ensureWritable(by: controller)
-            throw Ocp1Error.notImplemented
+            fallthrough
         default:
-            throw Ocp1Error.unhandledMethod
+            throw Ocp1Error.notImplemented
         }
     }
 
@@ -108,7 +108,7 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
     ) async throws -> Ocp1Response {
         do {
             return try await handleCommonMomCommand(command, from: controller)
-        } catch Ocp1Error.unhandledMethod {
+        } catch Ocp1Error.status(.notImplemented) {
             return try await super.handleCommand(command, from: controller)
         }
     }
