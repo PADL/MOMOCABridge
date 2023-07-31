@@ -194,6 +194,7 @@ public actor MOMOCABridge {
     func reset() async {
         await refreshDeviceManager()
         await panel.reset()
+        ringLedDisplay = RingLedDisplay()
     }
 }
 
