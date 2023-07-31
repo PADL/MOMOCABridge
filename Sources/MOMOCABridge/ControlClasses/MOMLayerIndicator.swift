@@ -42,7 +42,7 @@ class MOMLayerIndicator: SwiftOCADevice.OcaUint8Sensor, MOMPanelControl {
     ) async throws -> Ocp1Response {
         do {
             return try await handleCommonMomCommand(command, from: controller)
-        } catch Ocp1Error.status(.notImplemented) {
+        } catch is MOMPanel.CommandNotHandled {
             return try await super.handleCommand(command, from: controller)
         }
     }
