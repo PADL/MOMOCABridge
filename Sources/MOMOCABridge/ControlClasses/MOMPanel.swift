@@ -95,11 +95,11 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
 
         try await super.init(role: "MOM", deviceDelegate: bridge.device, addToRootBlock: true)
 
-        buttons.forEach { add(member: $0) }
-        add(member: external)
-        add(member: gain)
-        add(member: layer)
-        add(member: identificationSensor)
+        try buttons.forEach { try add(member: $0) }
+        try add(member: external)
+        try add(member: gain)
+        try add(member: layer)
+        try add(member: identificationSensor)
     }
 
     override open func handleCommand(
