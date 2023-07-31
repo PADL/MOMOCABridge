@@ -20,7 +20,8 @@ import Surrogate
 import SwiftOCA
 import SwiftOCADevice
 
-class MOMExternalKey: SwiftOCADevice.OcaActuator, MOMKeyProtocol {
+class MOMExternalKey: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
+    // this is a subclass to clarify it does not implement GetSetting()
     override open class var classID: OcaClassID { OcaClassID(parent: super.classID, 65280) }
 
     var keyID: MOMKeyID { .external }
@@ -33,14 +34,6 @@ class MOMExternalKey: SwiftOCADevice.OcaActuator, MOMKeyProtocol {
             deviceDelegate: bridge.device,
             addToRootBlock: false
         )
-    }
-
-    func getKeyState(event: MOMEvent, with params: inout [AnyObject]) async throws {
-        if params.count < 1 {
-            throw MOMStatus.invalidRequest
-        }
-
-        params.insert(NSNumber(value: 0), at: 1)
     }
 
     override open func handleCommand(
@@ -74,6 +67,14 @@ class MOMExternalKey: SwiftOCADevice.OcaActuator, MOMKeyProtocol {
             }
         }
         return Ocp1Response()
+    }
+
+    func getKeyState(event: MOMEvent, with params: inout [AnyObject]) async throws {
+        if params.count < 1 {
+            throw MOMStatus.invalidRequest
+        }
+
+        params.insert(NSNumber(value: 0), at: 1)
     }
 
     func reset() async {}

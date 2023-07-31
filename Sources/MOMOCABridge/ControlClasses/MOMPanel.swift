@@ -73,7 +73,7 @@ extension MOMPanelControl {
     }
 }
 
-class MOMPanel: SwiftOCADevice.OcaBlock, MOMPanelControl {
+class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelControl {
     weak var bridge: MOMOCABridge?
 
     private var buttons = [MOMButton]()
@@ -138,15 +138,19 @@ class MOMPanel: SwiftOCADevice.OcaBlock, MOMPanelControl {
         return object(ledID: ledID)
     }
 
+    // FIXME: ideally we could specialize on OcaWorker & MOMPanelControl
+    private var panelMembers: [MOMPanelControl] {
+        members.map { $0 as! MOMPanelControl }
+    }
+
     func portStatusDidChange() async {
-        for object in members {
-            try? await (object as! MOMPanelControl).portStatusDidChange()
+        for object in panelMembers {
+            try? await object.portStatusDidChange()
         }
     }
 
     func reset() async {
-        for object in members {
-            let object = object as! MOMPanelControl
+        for object in panelMembers {
             await object.reset()
             try? await object.portStatusDidChange()
         }
