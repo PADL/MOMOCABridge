@@ -39,7 +39,7 @@ extension MOMKeyProtocol {
     }
 
     // this needs to be called every time we update the layer text or change layer
-    func notifyLabelChanged() async throws {
+    func labelDidChange() async throws {
         guard let bridge else { return }
         let event = OcaEvent(emitterONo: objectNumber, eventID: OcaPropertyChangedEventID)
         let encoder = Ocp1BinaryEncoder()

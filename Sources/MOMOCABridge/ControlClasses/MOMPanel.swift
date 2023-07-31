@@ -56,7 +56,7 @@ extension MOMPanelControl {
     }
 
     // we could implement this by simply changing the enabled property, but why make things simple?
-    func notifyPortStatusChanged() async throws {
+    func portStatusDidChange() async throws {
         guard let bridge else { return }
         let event = OcaEvent(emitterONo: objectNumber, eventID: OcaPropertyChangedEventID)
         let encoder = Ocp1BinaryEncoder()
@@ -140,7 +140,7 @@ class MOMPanel: SwiftOCADevice.OcaBlock, MOMPanelControl {
 
     func portStatusDidChange() async {
         for object in members {
-            try? await (object as! MOMPanelControl).notifyPortStatusChanged()
+            try? await (object as! MOMPanelControl).portStatusDidChange()
         }
     }
 
@@ -148,7 +148,7 @@ class MOMPanel: SwiftOCADevice.OcaBlock, MOMPanelControl {
         for object in members {
             let object = object as! MOMPanelControl
             await object.reset()
-            try? await object.notifyPortStatusChanged()
+            try? await object.portStatusDidChange()
         }
     }
 }

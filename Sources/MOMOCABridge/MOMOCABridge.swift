@@ -236,14 +236,20 @@ extension MOMOCABridge {
         "kMOMUserLabel.Layer" + String(describing: layer) + "." + keyID.labelSuffix
     }
 
-    func setUserLabel(keyID: MOMKeyID, layer: Int, to label: String?) async {
-        let label = label?.isEmpty ?? false ? nil : label
+    private func defaultLabel(keyID: MOMKeyID) -> String {
+        let defaultsKey = userLabelDefaultsKey(keyID: keyID, layer: 1)
+        return keyID.rawValue <= MOMKeyID.sourceC.rawValue ? String(defaultsKey.last!) : ""
+    }
+
+    func setUserLabel(keyID: MOMKeyID, layer: Int, to label: String) async {
+        // if the label is reset to the empty string or the default value, remove it
+        let label = label.isEmpty || label == defaultLabel(keyID: keyID) ? nil : label
         let userDefaults = UserDefaults.standard
         let defaultsKey = userLabelDefaultsKey(keyID: keyID, layer: layer)
 
         userDefaults.set(label, forKey: defaultsKey)
         let object = panel.object(keyID: keyID)
-        try? await object.notifyLabelChanged()
+        try? await object.labelDidChange()
     }
 
     func userLabel(keyID: MOMKeyID, layer: Int) -> String {
@@ -253,8 +259,7 @@ extension MOMOCABridge {
         guard let userLabel = userDefaults.object(forKey: defaultsKey) as? String,
               userLabel.isEmpty == false
         else {
-            return keyID.rawValue <= MOMKeyID.sourceC.rawValue ?
-                String(defaultsKey.last!) : ""
+            return defaultLabel(keyID: keyID)
         }
 
         return userLabel
@@ -340,13 +345,14 @@ extension MOMOCABridge {
             case .portClosed:
                 deviceManager.state = .disabled
                 await self.reset()
+                return // this implicitly calls portStatusDidChange()
             default:
                 break
             }
 
             if oldState.isOperational != deviceManager.state.isOperational {
                 // notify subscribers to Enabled property of change in status
-                try await self.panel.notifyPortStatusChanged()
+                await self.panel.portStatusDidChange()
             }
         }
     }
