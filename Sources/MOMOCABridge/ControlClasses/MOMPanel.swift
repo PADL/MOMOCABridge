@@ -51,7 +51,7 @@ extension MOMPanelControl {
             try await ensureWritable(by: controller)
             fallthrough
         default:
-            throw MOMPanel.CommandNotHandled()
+            throw MOMStatus.continue
         }
     }
 
@@ -82,8 +82,6 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
     var layer: MOMLayerIndicator
     var identificationSensor: MOMIdentificationSensor
 
-    struct CommandNotHandled: Error {}
-
     init(bridge: MOMOCABridge) async throws {
         self.bridge = bridge
 
@@ -110,7 +108,7 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
     ) async throws -> Ocp1Response {
         do {
             return try await handleCommonMomCommand(command, from: controller)
-        } catch is MOMPanel.CommandNotHandled {
+        } catch let error as MOMStatus where error == .continue {
             return try await super.handleCommand(command, from: controller)
         }
     }

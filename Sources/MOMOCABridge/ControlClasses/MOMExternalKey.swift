@@ -42,7 +42,7 @@ class MOMExternalKey: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
     ) async throws -> Ocp1Response {
         do {
             return try await handleCommonMomCommand(command, from: controller)
-        } catch is MOMPanel.CommandNotHandled {
+        } catch let error as MOMStatus where error == .continue {
             switch command.methodID {
             case OcaMethodID("2.8"):
                 guard let bridge else { throw Ocp1Error.status(.deviceError) }

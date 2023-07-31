@@ -46,7 +46,7 @@ class MOMSteppedGainControl: SwiftOCADevice.OcaGain, MOMPanelControl {
     ) async throws -> Ocp1Response {
         do {
             return try await handleCommonMomCommand(command, from: controller)
-        } catch is MOMPanel.CommandNotHandled {
+        } catch let error as MOMStatus where error == .continue {
             switch command.methodID {
             case OcaMethodID("4.2"):
                 try await ensureWritableAndConnectedToDadMan(controller)
