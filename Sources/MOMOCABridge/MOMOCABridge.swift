@@ -385,7 +385,7 @@ extension MOMOCABridge {
         case .portConnected:
             try await portStatusChanged(event: event, with: &params)
         case .identify:
-            try await identify(event: event, with: &params)
+            try await panel.identificationSensor.identify()
         case .setDeviceID:
             try await setDeviceID(event: event, with: &params)
         case .getKeyState:
@@ -489,23 +489,5 @@ extension MOMOCABridge {
         }
 
         self.ledIntensity = ledIntensity
-    }
-}
-
-extension MOMOCABridge {
-    func identify(event: MOMEvent, with params: inout [AnyObject]) async throws {
-        if params.count < 1 {
-            throw MOMStatus.invalidRequest
-        }
-
-        guard let identifyForSeconds = (params[0] as? NSNumber)?.intValue else {
-            throw MOMStatus.invalidParameter
-        }
-
-        if identifyForSeconds > 60 {
-            throw MOMStatus.invalidParameter
-        }
-
-        try await panel.identificationSensor.identify()
     }
 }
