@@ -237,6 +237,7 @@ extension MOMOCABridge {
     }
 
     func setUserLabel(keyID: MOMKeyID, layer: Int, to label: String?) async {
+        let label = label?.isEmpty ?? false ? nil : label
         let userDefaults = UserDefaults.standard
         let defaultsKey = userLabelDefaultsKey(keyID: keyID, layer: layer)
 
