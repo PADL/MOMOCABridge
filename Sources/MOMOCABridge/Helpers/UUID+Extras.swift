@@ -64,15 +64,15 @@ extension UUID {
             kIOMasterPortDefault,
             platformExpertDevice
         )
+        defer { IOObjectRelease(platformExpert) }
+
         let serialNumberAsCFString = IORegistryEntryCreateCFProperty(
             platformExpert,
             kIOPlatformUUIDKey as CFString,
             kCFAllocatorDefault,
             0
         )
-        IOObjectRelease(platformExpert)
-
-        guard let serialNumberUUIDString = serialNumberAsCFString?.takeUnretainedValue() as? String
+        guard let serialNumberUUIDString = serialNumberAsCFString?.takeRetainedValue() as? String
         else {
             return nil
         }
