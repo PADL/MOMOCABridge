@@ -21,10 +21,10 @@
     {
       "identity" : "mom",
       "kind" : "remoteSourceControl",
-      "location" : "git@github.com:PADL/MOM.git",
+      "location" : "https://github.com/PADL/MOM.git",
       "state" : {
         "branch" : "main",
-        "revision" : "7279e08df56c540b05de18932fe2c2f1cba9f4f1"
+        "revision" : "4128aa9d0d915bf380c2fdd7e1040f8eec98193f"
       }
     },
     {
@@ -57,10 +57,10 @@
     {
       "identity" : "swiftoca",
       "kind" : "remoteSourceControl",
-      "location" : "git@github.com:PADL/SwiftOCA.git",
+      "location" : "https://github.com/PADL/SwiftOCA.git",
       "state" : {
         "branch" : "main",
-        "revision" : "8fdb2c98bc4629621d76af94afe6d0780ea8f276"
+        "revision" : "310906ea50da1a14cb35d4913f1773919b7b781b"
       }
     }
   ],

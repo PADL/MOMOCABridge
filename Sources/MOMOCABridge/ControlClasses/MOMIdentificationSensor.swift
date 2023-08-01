@@ -35,7 +35,7 @@ class MOMIdentificationSensor: SwiftOCADevice.OcaIdentificationSensor, MOMPanelC
 
     override open func handleCommand(
         _ command: Ocp1Command,
-        from controller: AES70OCP1Controller
+        from controller: AES70Controller
     ) async throws -> Ocp1Response {
         do {
             return try await handleCommonMomCommand(command, from: controller)
