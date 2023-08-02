@@ -95,11 +95,11 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
 
         try await super.init(role: "MOM", deviceDelegate: bridge.device, addToRootBlock: true)
 
-        try buttons.forEach { try add(member: $0) }
-        try add(member: external)
-        try add(member: gain)
-        try add(member: layer)
-        try add(member: identificationSensor)
+        try buttons.forEach { try add(actionObject: $0) }
+        try add(actionObject: external)
+        try add(actionObject: gain)
+        try add(actionObject: layer)
+        try add(actionObject: identificationSensor)
     }
 
     override open func handleCommand(
@@ -140,7 +140,7 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
 
     // FIXME: ideally we could specialize on OcaWorker & MOMPanelControl
     private var panelMembers: [MOMPanelControl] {
-        members.map { $0 as! MOMPanelControl }
+        actionObjects.map { $0 as! MOMPanelControl }
     }
 
     func portStatusDidChange() async {
