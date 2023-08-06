@@ -420,18 +420,19 @@ extension MOMOCABridge {
             throw MOMStatus.invalidRequest
         }
 
-        guard let ledNumber = (params[0] as? NSNumber)?.intValue else {
+        guard let ledNumber = (params[0] as? NSNumber) else {
             throw MOMStatus.invalidParameter
         }
 
-        if ledNumber < 1 || ledNumber > RingLedDisplay.LedCount + Self.LayerCount {
+        if ledNumber.intValue < 1 ||
+            ledNumber.intValue > RingLedDisplay.LedCount + Self.LayerCount {
             throw MOMStatus.invalidParameter
         }
 
-        if ledNumber <= RingLedDisplay.LedCount {
-            params.insert(NSNumber(value: panel.gain.getVolume(led: ledNumber)), at: 1)
+        if ledNumber.intValue <= RingLedDisplay.LedCount {
+            params.insert(NSNumber(value: panel.gain.getVolume(led: ledNumber.intValue)), at: 1)
         } else {
-            params.insert(NSNumber(value: panel.layer.isLayerSelected(led: ledNumber)), at: 1)
+            params.insert(NSNumber(value: panel.layer.isLayerSelected(led: ledNumber.intValue)), at: 1)
         }
     }
 
@@ -440,22 +441,23 @@ extension MOMOCABridge {
             throw MOMStatus.invalidRequest
         }
 
-        guard let ledNumber = (params[0] as? NSNumber)?.intValue else {
+        guard let ledNumber = (params[0] as? NSNumber) else {
             throw MOMStatus.invalidParameter
         }
 
-        if ledNumber < 1 || ledNumber > RingLedDisplay.LedCount + Self.LayerCount {
+        if ledNumber.intValue < 1 ||
+            ledNumber.intValue > RingLedDisplay.LedCount + Self.LayerCount {
             throw MOMStatus.invalidParameter
         }
 
-        guard let ledParam = (params[1] as? NSNumber)?.intValue else {
+        guard let ledParam = (params[1] as? NSNumber) else {
             throw MOMStatus.invalidParameter
         }
 
-        if ledNumber <= RingLedDisplay.LedCount {
-            try await panel.gain.setVolume(led: ledNumber, toIntensity: ledParam)
+        if ledNumber.intValue <= RingLedDisplay.LedCount {
+            try await panel.gain.setVolume(led: ledNumber.intValue, toIntensity: ledParam.intValue)
         } else {
-            try await panel.layer.setSelectedLayer(led: ledNumber, to: ledParam)
+            try await panel.layer.setSelectedLayer(led: ledNumber.intValue, to: ledParam.intValue)
         }
     }
 

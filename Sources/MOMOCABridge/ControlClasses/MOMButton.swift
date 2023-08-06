@@ -121,13 +121,13 @@ class MOMButton: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
             throw MOMStatus.invalidRequest
         }
 
-        guard let ledState = (params[1] as? NSNumber)?.boolValue else {
+        guard let ledState = (params[1] as? NSNumber) else {
             throw MOMStatus.invalidParameter
         }
 
-        setting = ledState
+        setting = ledState.boolValue
         if keyID == .ref {
-            await bridge?.panel.gain.isGainAdjustable = !ledState
+            await bridge?.panel.gain.isGainAdjustable = !setting
         }
     }
 
