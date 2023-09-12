@@ -27,7 +27,7 @@ class MOMLayerIndicator: SwiftOCADevice.OcaInt8Sensor {
     init(bridge: MOMOCABridge) async throws {
         self.bridge = bridge
         try await super.init(
-            0,
+            OcaBoundedPropertyValue<Int8>(value: 1, in: 1...4),
             role: "Selected Layer",
             deviceDelegate: bridge.device,
             addToRootBlock: false
@@ -38,7 +38,7 @@ class MOMLayerIndicator: SwiftOCADevice.OcaInt8Sensor {
         precondition(ledNumber > RingLedDisplay.LedCount)
         precondition(ledNumber - RingLedDisplay.LedCount <= MOMOCABridge.LayerCount)
 
-        return Int(reading) == ledNumber - RingLedDisplay.LedCount
+        return Int(reading.value) == ledNumber - RingLedDisplay.LedCount
     }
 
     func setSelectedLayer(led ledNumber: Int, to state: Int) async throws {
@@ -48,7 +48,7 @@ class MOMLayerIndicator: SwiftOCADevice.OcaInt8Sensor {
         let layerNumber = ledNumber - RingLedDisplay.LedCount
 
         if state == 1 {
-            reading = Int8(layerNumber)
+            reading.value = Int8(layerNumber)
         }
     }
 }

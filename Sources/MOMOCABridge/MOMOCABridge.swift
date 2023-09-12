@@ -38,7 +38,9 @@ public actor MOMOCABridge {
     private var portStatus: MOMEvent = .portClosed
     private(set) var panel: MOMPanel!
 
-    let device: AES70OCP1Device
+    let device = AES70Device.shared
+    let listener: AES70OCP1Listener
+
     var ringLedDisplay = RingLedDisplay()
 
     deinit {
@@ -59,7 +61,7 @@ public actor MOMOCABridge {
             localAddressData = Data(bytes: bytes.baseAddress!, count: bytes.count)
         }
 
-        device = try await AES70OCP1Device(address: localAddressData)
+        listener = try await AES70OCP1Listener(address: localAddressData)
         panel = try await MOMPanel(bridge: self)
 
         momController = momControllerCreate()
@@ -139,11 +141,11 @@ public actor MOMOCABridge {
         let options = MOMControllerGetOptions(momController)._nsObject
         log(message: "begun discoverability with options \(options)")
 
-        try await device.start()
+        try await listener.start()
     }
 
     public func announceDiscoverability() async throws {
-        await device.stop()
+        await listener.stop()
 
         guard let momController = momController else {
             throw MOMStatus.invalidParameter

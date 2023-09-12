@@ -27,7 +27,7 @@ protocol MOMKeyProtocol {
 }
 
 extension MOMKeyProtocol {
-    func notifyKeyDownUp(from controller: AES70OCP1Controller) async {
+    func notifyKeyDownUp(from controller: AES70Controller) async {
         guard let bridge else { return }
         var params: [Int] = [MOMStatus.success.rawValue, keyID.rawValue, 0]
         params[2] = 1 // key down
@@ -58,7 +58,7 @@ class MOMButton: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
 
     override open func handleCommand(
         _ command: Ocp1Command,
-        from controller: AES70OCP1Controller
+        from controller: AES70Controller
     ) async throws -> Ocp1Response {
         switch command.methodID {
         case OcaMethodID("5.2"):

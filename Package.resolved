@@ -15,7 +15,7 @@
       "location" : "https://github.com/swhitty/FlyingFox",
       "state" : {
         "branch" : "main",
-        "revision" : "8b195ab596666776815c68c614e7f061075945e9"
+        "revision" : "743be615d46dbbf99df845235d00bd7c97ad282a"
       }
     },
     {
@@ -24,7 +24,7 @@
       "location" : "git@github.com:PADL/MOM.git",
       "state" : {
         "branch" : "main",
-        "revision" : "c3a531498a993858b65d27004de9e002eb3c4289"
+        "revision" : "1b0076bfa04cd9dc570b25b4bd055e91cd4f16b8"
       }
     },
     {
@@ -60,7 +60,7 @@
       "location" : "git@github.com:PADL/SwiftOCA.git",
       "state" : {
         "branch" : "main",
-        "revision" : "dd34016bf0e14b2139a8cd91b309944f87b6c525"
+        "revision" : "ded34861a269bd59f0311f218945a6fd003e82a4"
       }
     }
   ],

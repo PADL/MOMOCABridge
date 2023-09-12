@@ -19,7 +19,7 @@ import Surrogate
 import SwiftOCA
 import SwiftOCADevice
 
-class MOMPanel: SwiftOCADevice.OcaBlock {
+class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker> {
     var buttons = [MOMButton]()
     var external: MOMExternalKey
     var gain: MOMGainControl
@@ -35,10 +35,10 @@ class MOMPanel: SwiftOCADevice.OcaBlock {
 
         try await super.init(role: "MOM", deviceDelegate: bridge.device, addToRootBlock: true)
 
-        buttons.forEach { addMember($0) }
-        addMember(external)
-        addMember(gain)
-        addMember(layer)
+        for button in buttons { try await add(actionObject: button) }
+        try await add(actionObject: external)
+        try await add(actionObject: gain)
+        try await add(actionObject: layer)
     }
 
     func object(keyID: MOMKeyID) -> MOMKeyProtocol {
