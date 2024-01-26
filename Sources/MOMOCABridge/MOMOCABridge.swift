@@ -32,8 +32,8 @@ public actor MOMOCABridge {
     private(set) var panel: MOMPanel!
     private var momDeviceNotificationTask: Task<(), Never>?
 
-    let device = AES70Device.shared
-    let listener: AES70OCP1Listener
+    let device = OcaDevice.shared
+    let listener: Ocp1Listener
     var ringLedDisplay = RingLedDisplay()
 
     deinit {
@@ -56,7 +56,7 @@ public actor MOMOCABridge {
             localAddressData = Data(bytes: bytes.baseAddress!, count: bytes.count)
         }
 
-        listener = try await AES70OCP1Listener(device: device, address: localAddressData)
+        listener = try await Ocp1Listener(device: device, address: localAddressData)
         panel = try await MOMPanel(bridge: self)
 
         momController = momControllerCreate()

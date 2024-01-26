@@ -32,7 +32,7 @@ extension MOMPanelControl {
         }
     }
 
-    func ensureWritableAndConnectedToDadMan(_ controller: AES70Controller) async throws {
+    func ensureWritableAndConnectedToDadMan(_ controller: OcaController) async throws {
         guard let bridge else { return }
         try await ensureWritable(by: controller)
         try await bridge.ensureConnectedToDadMan()
@@ -41,7 +41,7 @@ extension MOMPanelControl {
     // shared command implementations between MOM worker classes
     func handleCommonMomCommand(
         _ command: Ocp1Command,
-        from controller: AES70Controller
+        from controller: OcaController
     ) async throws -> Ocp1Response {
         switch command.methodID {
         case OcaMethodID("2.1"): // GetEnabled()
@@ -104,7 +104,7 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
 
     override open func handleCommand(
         _ command: Ocp1Command,
-        from controller: AES70Controller
+        from controller: OcaController
     ) async throws -> Ocp1Response {
         do {
             return try await handleCommonMomCommand(command, from: controller)
