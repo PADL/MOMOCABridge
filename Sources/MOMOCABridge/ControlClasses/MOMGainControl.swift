@@ -49,7 +49,7 @@ class MOMSteppedGainControl: SwiftOCADevice.OcaGain, MOMPanelControl {
         } catch let error as MOMStatus where error == .continue {
             switch command.methodID {
             case OcaMethodID("4.2"):
-                try await ensureWritableAndConnectedToDadMan(controller)
+                try await ensureWritableAndConnectedToDadMan(controller, command: command)
                 if !isGainAdjustable {
                     throw Ocp1Error.status(.parameterOutOfRange)
                 }
@@ -108,5 +108,9 @@ class MOMSteppedGainControl: SwiftOCADevice.OcaGain, MOMPanelControl {
 
     func reset() async {
         gain.value = 0.0
+    }
+
+    required init(from decoder: Decoder) throws {
+        throw Ocp1Error.objectNotPresent
     }
 }

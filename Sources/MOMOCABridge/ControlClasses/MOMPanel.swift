@@ -32,9 +32,12 @@ extension MOMPanelControl {
         }
     }
 
-    func ensureWritableAndConnectedToDadMan(_ controller: OcaController) async throws {
+    func ensureWritableAndConnectedToDadMan(
+        _ controller: OcaController,
+        command: Ocp1Command
+    ) async throws {
         guard let bridge else { return }
-        try await ensureWritable(by: controller)
+        try await ensureWritable(by: controller, command: command)
         try await bridge.ensureConnectedToDadMan()
     }
 
@@ -45,10 +48,10 @@ extension MOMPanelControl {
     ) async throws -> Ocp1Response {
         switch command.methodID {
         case OcaMethodID("2.1"): // GetEnabled()
-            try await ensureReadable(by: controller)
+            try await ensureReadable(by: controller, command: command)
             return try encodeResponse(await isConnectedToDadMan)
         case OcaMethodID("2.2"): // SetEnabled()
-            try await ensureWritable(by: controller)
+            try await ensureWritable(by: controller, command: command)
             fallthrough
         default:
             throw MOMStatus.continue
@@ -59,7 +62,7 @@ extension MOMPanelControl {
     func portStatusDidChange() async throws {
         guard let bridge else { return }
         let event = OcaEvent(emitterONo: objectNumber, eventID: OcaPropertyChangedEventID)
-        let encoder = Ocp1BinaryEncoder()
+        let encoder = Ocp1Encoder()
         let parameters = await OcaPropertyChangedEventData<OcaBoolean>(
             propertyID: OcaPropertyID("2.1"), // enabled
             propertyValue: isConnectedToDadMan,
@@ -95,11 +98,15 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
 
         try await super.init(role: "MOM", deviceDelegate: bridge.device, addToRootBlock: true)
 
-        for button in buttons { try await add(actionObject: button) }
-        try await add(actionObject: external)
-        try await add(actionObject: gain)
-        try await add(actionObject: layer)
-        try await add(actionObject: identificationSensor)
+        for button in buttons { try add(actionObject: button) }
+        try add(actionObject: external)
+        try add(actionObject: gain)
+        try add(actionObject: layer)
+        try add(actionObject: identificationSensor)
+    }
+
+    required init(from decoder: Decoder) throws {
+        throw Ocp1Error.objectNotPresent
     }
 
     override open func handleCommand(

@@ -46,20 +46,20 @@ class MOMExternalKey: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
             switch command.methodID {
             case OcaMethodID("2.8"):
                 guard let bridge else { throw Ocp1Error.status(.deviceError) }
-                try await ensureReadable(by: controller)
+                try await ensureReadable(by: controller, command: command)
                 label = await bridge.userLabel(keyID: keyID, layer: bridge.selectedLayer)
                 return try encodeResponse(label)
             case OcaMethodID("2.9"):
                 guard let bridge else { throw Ocp1Error.status(.deviceError) }
-                try await ensureWritable(by: controller)
+                try await ensureWritable(by: controller, command: command)
                 let label: OcaString = try decodeCommand(command)
                 await bridge.setUserLabel(keyID: keyID, layer: bridge.selectedLayer, to: label)
             case OcaMethodID("5.1"):
                 // being a footswitch with no visible state, this is never readable
-                try await ensureReadable(by: controller)
+                try await ensureReadable(by: controller, command: command)
                 throw Ocp1Error.status(.notImplemented)
             case OcaMethodID("5.2"):
-                try await ensureWritableAndConnectedToDadMan(controller)
+                try await ensureWritableAndConnectedToDadMan(controller, command: command)
                 // this "set" command is momentary, it does not have any state
                 await notifyKeyDownUp(from: controller)
             default:
@@ -78,4 +78,8 @@ class MOMExternalKey: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
     }
 
     func reset() async {}
+
+    required init(from decoder: Decoder) throws {
+        throw Ocp1Error.objectNotPresent
+    }
 }

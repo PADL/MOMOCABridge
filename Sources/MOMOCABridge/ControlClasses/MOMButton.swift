@@ -42,7 +42,7 @@ extension MOMKeyProtocol {
     func labelDidChange() async throws {
         guard let bridge else { return }
         let event = OcaEvent(emitterONo: objectNumber, eventID: OcaPropertyChangedEventID)
-        let encoder = Ocp1BinaryEncoder()
+        let encoder = Ocp1Encoder()
         let parameters = await OcaPropertyChangedEventData<OcaString>(
             propertyID: OcaPropertyID("2.3"), // label
             propertyValue: bridge.userLabel(keyID: keyID, layer: bridge.selectedLayer),
@@ -84,16 +84,16 @@ class MOMButton: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
             switch command.methodID {
             case OcaMethodID("2.8"):
                 guard let bridge else { throw Ocp1Error.status(.deviceError) }
-                try await ensureReadable(by: controller)
+                try await ensureReadable(by: controller, command: command)
                 label = await bridge.userLabel(keyID: keyID, layer: bridge.selectedLayer)
                 return try encodeResponse(label)
             case OcaMethodID("2.9"):
                 guard let bridge else { throw Ocp1Error.status(.deviceError) }
-                try await ensureWritable(by: controller)
+                try await ensureWritable(by: controller, command: command)
                 let label: OcaString = try decodeCommand(command)
                 await bridge.setUserLabel(keyID: keyID, layer: bridge.selectedLayer, to: label)
             case OcaMethodID("5.2"):
-                try await ensureWritableAndConnectedToDadMan(controller)
+                try await ensureWritableAndConnectedToDadMan(controller, command: command)
                 // If the OCA controller changed what we think the state is, then toggle it.
                 // We rely on DADman notifications to send OCA events, so we don't actually
                 // change our representation of the state (in setting) here. Otherwise we
@@ -141,5 +141,9 @@ class MOMButton: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
 
     func reset() async {
         setting = false
+    }
+
+    required init(from decoder: Decoder) throws {
+        throw Ocp1Error.objectNotPresent
     }
 }

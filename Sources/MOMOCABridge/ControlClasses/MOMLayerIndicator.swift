@@ -36,6 +36,10 @@ class MOMLayerIndicator: SwiftOCADevice.OcaUint8Sensor, MOMPanelControl {
         state = .valid
     }
 
+    required init(from decoder: Decoder) throws {
+        throw Ocp1Error.objectNotPresent
+    }
+
     override open func handleCommand(
         _ command: Ocp1Command,
         from controller: OcaController

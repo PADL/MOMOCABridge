@@ -31,9 +31,10 @@ public actor MOMOCABridge {
     private var momDiscoverabilityStatus: MOMStatus = .socketError
     private(set) var panel: MOMPanel!
     private var momDeviceNotificationTask: Task<(), Never>?
+    private var ocp1Task: Task<(), Error>?
 
     let device = OcaDevice.shared
-    let listener: Ocp1Listener
+    let endpoint: Ocp1DeviceEndpoint
     var ringLedDisplay = RingLedDisplay()
 
     deinit {
@@ -56,7 +57,7 @@ public actor MOMOCABridge {
             localAddressData = Data(bytes: bytes.baseAddress!, count: bytes.count)
         }
 
-        listener = try await Ocp1Listener(device: device, address: localAddressData)
+        endpoint = try await Ocp1DeviceEndpoint(address: localAddressData, device: device)
         panel = try await MOMPanel(bridge: self)
 
         momController = momControllerCreate()
@@ -135,6 +136,11 @@ public actor MOMOCABridge {
             throw MOMStatus.invalidParameter
         }
 
+        if let ocp1Task {
+            ocp1Task.cancel()
+            self.ocp1Task = nil
+        }
+
         log(message: "ending discoverability")
         MOMControllerEndDiscoverability(momController)
         momDiscoverabilityStatus = .socketError
@@ -156,12 +162,10 @@ public actor MOMOCABridge {
         let options = MOMControllerGetOptions(momController) as NSMutableDictionary
         log(message: "begun discoverability with options \(options)")
 
-        try await listener.start()
+        ocp1Task = Task { try await endpoint.run() }
     }
 
     public func announceDiscoverability() async throws {
-        await listener.stop()
-
         guard let momController = momController else {
             throw MOMStatus.invalidParameter
         }
@@ -425,14 +429,18 @@ extension MOMOCABridge {
         }
 
         if ledNumber.intValue < 1 ||
-            ledNumber.intValue > RingLedDisplay.LedCount + Self.LayerCount {
+            ledNumber.intValue > RingLedDisplay.LedCount + Self.LayerCount
+        {
             throw MOMStatus.invalidParameter
         }
 
         if ledNumber.intValue <= RingLedDisplay.LedCount {
             params.insert(NSNumber(value: panel.gain.getVolume(led: ledNumber.intValue)), at: 1)
         } else {
-            params.insert(NSNumber(value: panel.layer.isLayerSelected(led: ledNumber.intValue)), at: 1)
+            params.insert(
+                NSNumber(value: panel.layer.isLayerSelected(led: ledNumber.intValue)),
+                at: 1
+            )
         }
     }
 
@@ -446,7 +454,8 @@ extension MOMOCABridge {
         }
 
         if ledNumber.intValue < 1 ||
-            ledNumber.intValue > RingLedDisplay.LedCount + Self.LayerCount {
+            ledNumber.intValue > RingLedDisplay.LedCount + Self.LayerCount
+        {
             throw MOMStatus.invalidParameter
         }
 
