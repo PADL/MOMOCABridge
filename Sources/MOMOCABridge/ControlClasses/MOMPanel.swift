@@ -62,7 +62,6 @@ extension MOMPanelControl {
     func portStatusDidChange() async throws {
         guard let bridge else { return }
         let event = OcaEvent(emitterONo: objectNumber, eventID: OcaPropertyChangedEventID)
-        let encoder = Ocp1Encoder()
         let parameters = await OcaPropertyChangedEventData<OcaBoolean>(
             propertyID: OcaPropertyID("2.1"), // enabled
             propertyValue: isConnectedToDadMan,
@@ -71,7 +70,7 @@ extension MOMPanelControl {
 
         try await bridge.device.notifySubscribers(
             event,
-            parameters: try encoder.encode(parameters)
+            parameters: parameters
         )
     }
 }

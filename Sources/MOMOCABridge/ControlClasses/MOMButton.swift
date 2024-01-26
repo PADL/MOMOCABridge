@@ -42,7 +42,6 @@ extension MOMKeyProtocol {
     func labelDidChange() async throws {
         guard let bridge else { return }
         let event = OcaEvent(emitterONo: objectNumber, eventID: OcaPropertyChangedEventID)
-        let encoder = Ocp1Encoder()
         let parameters = await OcaPropertyChangedEventData<OcaString>(
             propertyID: OcaPropertyID("2.3"), // label
             propertyValue: bridge.userLabel(keyID: keyID, layer: bridge.selectedLayer),
@@ -51,7 +50,7 @@ extension MOMKeyProtocol {
 
         try await bridge.device.notifySubscribers(
             event,
-            parameters: try encoder.encode(parameters)
+            parameters: parameters
         )
     }
 }

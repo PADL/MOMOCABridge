@@ -24,7 +24,7 @@
       "location" : "https://github.com/swhitty/FlyingFox",
       "state" : {
         "branch" : "main",
-        "revision" : "4b925ad5e1fea4fca5cf53b0a4d980b29637560e"
+        "revision" : "6677f518f76dfdaabbdb671d2ed9108cd0e78950"
       }
     },
     {
@@ -69,7 +69,7 @@
       "location" : "https://github.com/PADL/SwiftOCA.git",
       "state" : {
         "branch" : "main",
-        "revision" : "35407c8ca3f7b381300fc1b60640c5f404ff52fe"
+        "revision" : "fd095a58d7d3ebcd1e011f56779a53b9bf49e6ba"
       }
     },
     {
