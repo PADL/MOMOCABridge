@@ -57,6 +57,8 @@ public actor MOMOCABridge {
             localAddressData = Data(bytes: bytes.baseAddress!, count: bytes.count)
         }
 
+        try await device.initializeDefaultObjects()
+
         endpoint = try await Ocp1DeviceEndpoint(address: localAddressData, device: device)
         panel = try await MOMPanel(bridge: self)
 
