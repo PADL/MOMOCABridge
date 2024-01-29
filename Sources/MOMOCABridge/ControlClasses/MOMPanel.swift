@@ -97,11 +97,11 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
 
         try await super.init(role: "MOM", deviceDelegate: bridge.device, addToRootBlock: true)
 
-        for button in buttons { try add(actionObject: button) }
-        try add(actionObject: external)
-        try add(actionObject: gain)
-        try add(actionObject: layer)
-        try add(actionObject: identificationSensor)
+        for button in buttons { try await add(actionObject: button) }
+        try await add(actionObject: external)
+        try await add(actionObject: gain)
+        try await add(actionObject: layer)
+        try await add(actionObject: identificationSensor)
     }
 
     required init(from decoder: Decoder) throws {

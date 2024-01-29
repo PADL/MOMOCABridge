@@ -47,7 +47,7 @@ class MOMExternalKey: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
             case OcaMethodID("2.8"):
                 guard let bridge else { throw Ocp1Error.status(.deviceError) }
                 try await ensureReadable(by: controller, command: command)
-                label = await bridge.userLabel(keyID: keyID, layer: bridge.selectedLayer)
+                label = bridge.userLabel(keyID: keyID, layer: bridge.selectedLayer)
                 return try encodeResponse(label)
             case OcaMethodID("2.9"):
                 guard let bridge else { throw Ocp1Error.status(.deviceError) }

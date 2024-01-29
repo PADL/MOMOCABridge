@@ -73,7 +73,7 @@ class MOMLayerIndicator: SwiftOCADevice.OcaUint8Sensor, MOMPanelControl {
     func layerDidChange() async {
         guard let bridge else { return }
         for keyID in MOMKeyID.allCases() {
-            let object = await bridge.panel.object(keyID: keyID)
+            let object = bridge.panel.object(keyID: keyID)
             try? await object.labelDidChange()
         }
     }

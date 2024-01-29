@@ -24,7 +24,8 @@ import SwiftOCADevice
 
 extension MOMStatus: Error {}
 
-public actor MOMOCABridge {
+@OcaDevice
+public class MOMOCABridge {
     static var defaultDeviceID = 50
 
     private var momController: MOMControllerRef!

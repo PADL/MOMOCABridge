@@ -71,7 +71,7 @@ class MOMSteppedGainControl: SwiftOCADevice.OcaGain, MOMPanelControl {
 
     func notifyRotationCount() async {
         let params: [Int] = [MOMStatus.success.rawValue, Int(rotaryEncoder.rotationCount)]
-        await bridge?.notify(event: MOMEvent.getRotationCount, params: params.nsNumberArray)
+        bridge?.notify(event: MOMEvent.getRotationCount, params: params.nsNumberArray)
     }
 
     func rotateEncoder(to newValueDB: OcaDB, from oldValueDB: OcaDB) async {
@@ -99,9 +99,9 @@ class MOMSteppedGainControl: SwiftOCADevice.OcaGain, MOMPanelControl {
         }
 
         guard let bridge else { return }
-        await bridge.updateRingLedDisplay(led: ledNumber, to: color)
+        bridge.updateRingLedDisplay(led: ledNumber, to: color)
 
-        if let dBValue = await bridge.ringLedDisplay.dBValue {
+        if let dBValue = bridge.ringLedDisplay.dBValue {
             gain.value = dBValue
         }
     }
