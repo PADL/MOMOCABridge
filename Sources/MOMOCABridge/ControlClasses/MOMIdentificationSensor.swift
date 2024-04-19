@@ -34,7 +34,7 @@ class MOMIdentificationSensor: SwiftOCADevice.OcaIdentificationSensor, MOMPanelC
     }
 
     required init(from decoder: Decoder) throws {
-        throw Ocp1Error.objectNotPresent
+        throw Ocp1Error.notImplemented
     }
 
     override open func handleCommand(

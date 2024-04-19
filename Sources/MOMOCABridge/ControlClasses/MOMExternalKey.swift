@@ -80,6 +80,6 @@ class MOMExternalKey: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
     func reset() async {}
 
     required init(from decoder: Decoder) throws {
-        throw Ocp1Error.objectNotPresent
+        throw Ocp1Error.notImplemented
     }
 }

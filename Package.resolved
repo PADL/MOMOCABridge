@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swhitty/FlyingFox",
       "state" : {
-        "revision" : "00e4d51c57b4fbe4f011650f2f965d3bea1ba7c1",
-        "version" : "0.13.0"
+        "revision" : "c9e0d358e6fcab4b4a4589bc88d110875c96d739",
+        "version" : "0.14.0"
       }
     },
     {
@@ -69,7 +69,7 @@
       "location" : "https://github.com/PADL/SwiftOCA.git",
       "state" : {
         "branch" : "main",
-        "revision" : "4cef40389f602d1f4dd264c890b026aaa75c3a64"
+        "revision" : "5ce1af9243667a24f6235e97e16a2ac5cb3e01d2"
       }
     },
     {

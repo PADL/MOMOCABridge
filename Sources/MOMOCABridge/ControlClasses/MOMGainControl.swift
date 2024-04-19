@@ -111,6 +111,6 @@ class MOMSteppedGainControl: SwiftOCADevice.OcaGain, MOMPanelControl {
     }
 
     required init(from decoder: Decoder) throws {
-        throw Ocp1Error.objectNotPresent
+        throw Ocp1Error.notImplemented
     }
 }

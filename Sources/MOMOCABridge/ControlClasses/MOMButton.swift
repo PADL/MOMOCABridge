@@ -143,6 +143,6 @@ class MOMButton: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
     }
 
     required init(from decoder: Decoder) throws {
-        throw Ocp1Error.objectNotPresent
+        throw Ocp1Error.notImplemented
     }
 }
