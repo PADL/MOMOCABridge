@@ -18,8 +18,8 @@ import MOMOCABridge
 
 @main
 public enum MOMOCABridgeShell {
-    static func main() async throws {
-        let bridge = try await MOMOCABridge()
-        try await bridge.beginDiscoverability()
-    }
+  static func main() async throws {
+    let bridge = try await MOMOCABridge()
+    try await bridge.beginDiscoverability()
+  }
 }

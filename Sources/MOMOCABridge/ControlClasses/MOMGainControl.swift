@@ -21,96 +21,96 @@ import SwiftOCA
 import SwiftOCADevice
 
 class MOMSteppedGainControl: SwiftOCADevice.OcaGain, MOMPanelControl {
-    override open class var classID: OcaClassID { OcaClassID(parent: super.classID, 65280) }
+  override open class var classID: OcaClassID { OcaClassID(parent: super.classID, 65280) }
 
-    weak var bridge: MOMOCABridge?
-    var isGainAdjustable = true
-    var rotaryEncoder = RotaryEncoder()
+  weak var bridge: MOMOCABridge?
+  var isGainAdjustable = true
+  var rotaryEncoder = RotaryEncoder()
 
-    init(bridge: MOMOCABridge) async throws {
-        self.bridge = bridge
-        try await super.init(
-            role: "Gain",
-            deviceDelegate: bridge.device,
-            addToRootBlock: false
-        )
-        gain = OcaBoundedPropertyValue<OcaDB>(
-            value: 0.0,
-            in: MOM.dBDadDisplayFloor...MOM.dBDadDisplayCeiling
-        )
-    }
+  init(bridge: MOMOCABridge) async throws {
+    self.bridge = bridge
+    try await super.init(
+      role: "Gain",
+      deviceDelegate: bridge.device,
+      addToRootBlock: false
+    )
+    gain = OcaBoundedPropertyValue<OcaDB>(
+      value: 0.0,
+      in: MOM.dBDadDisplayFloor...MOM.dBDadDisplayCeiling
+    )
+  }
 
-    override open func handleCommand(
-        _ command: Ocp1Command,
-        from controller: OcaController
-    ) async throws -> Ocp1Response {
-        do {
-            return try await handleCommonMomCommand(command, from: controller)
-        } catch let error as MOMStatus where error == .continue {
-            switch command.methodID {
-            case OcaMethodID("4.2"):
-                try await ensureWritableAndConnectedToDadMan(controller, command: command)
-                if !isGainAdjustable {
-                    throw Ocp1Error.status(.parameterOutOfRange)
-                }
-                let newValue: OcaDB = try decodeCommand(command)
-                await rotateEncoder(to: newValue, from: gain.value)
-            default:
-                return try await super.handleCommand(command, from: controller)
-            }
+  override open func handleCommand(
+    _ command: Ocp1Command,
+    from controller: OcaController
+  ) async throws -> Ocp1Response {
+    do {
+      return try await handleCommonMomCommand(command, from: controller)
+    } catch let error as MOMStatus where error == .continue {
+      switch command.methodID {
+      case OcaMethodID("4.2"):
+        try await ensureWritableAndConnectedToDadMan(controller, command: command)
+        if !isGainAdjustable {
+          throw Ocp1Error.status(.parameterOutOfRange)
         }
-        return Ocp1Response()
+        let newValue: OcaDB = try decodeCommand(command)
+        await rotateEncoder(to: newValue, from: gain.value)
+      default:
+        return try await super.handleCommand(command, from: controller)
+      }
+    }
+    return Ocp1Response()
+  }
+
+  func getRotationCount(
+    event: MOMEvent,
+    with params: inout [AnyObject]
+  ) async throws {
+    params.insert(NSNumber(value: rotaryEncoder.rotationCount), at: 0)
+  }
+
+  func notifyRotationCount() async {
+    let params: [Int] = [MOMStatus.success.rawValue, Int(rotaryEncoder.rotationCount)]
+    bridge?.notify(event: MOMEvent.getRotationCount, params: params.nsNumberArray)
+  }
+
+  func rotateEncoder(to newValueDB: OcaDB, from oldValueDB: OcaDB) async {
+    let previousRotationCount = rotaryEncoder.rotationCount
+
+    rotaryEncoder.rotateScaledDB(to: newValueDB, from: oldValueDB)
+
+    if rotaryEncoder.rotationCount != previousRotationCount {
+      await notifyRotationCount()
+    }
+  }
+
+  func getVolume(led ledNumber: Int) -> Int {
+    let color = RingLedDisplay.colorForDBValue(
+      led: ledNumber,
+      value: gain.value
+    )
+
+    return color.rawValue
+  }
+
+  func setVolume(led ledNumber: Int, toIntensity ledIntensity: Int) async throws {
+    guard let color = RingLedDisplay.LedColor(rawValue: ledIntensity) else {
+      throw MOMStatus.invalidParameter
     }
 
-    func getRotationCount(
-        event: MOMEvent,
-        with params: inout [AnyObject]
-    ) async throws {
-        params.insert(NSNumber(value: rotaryEncoder.rotationCount), at: 0)
+    guard let bridge else { return }
+    bridge.updateRingLedDisplay(led: ledNumber, to: color)
+
+    if let dBValue = bridge.ringLedDisplay.dBValue {
+      gain.value = dBValue
     }
+  }
 
-    func notifyRotationCount() async {
-        let params: [Int] = [MOMStatus.success.rawValue, Int(rotaryEncoder.rotationCount)]
-        bridge?.notify(event: MOMEvent.getRotationCount, params: params.nsNumberArray)
-    }
+  func reset() async {
+    gain.value = 0.0
+  }
 
-    func rotateEncoder(to newValueDB: OcaDB, from oldValueDB: OcaDB) async {
-        let previousRotationCount = rotaryEncoder.rotationCount
-
-        rotaryEncoder.rotateScaledDB(to: newValueDB, from: oldValueDB)
-
-        if rotaryEncoder.rotationCount != previousRotationCount {
-            await notifyRotationCount()
-        }
-    }
-
-    func getVolume(led ledNumber: Int) -> Int {
-        let color = RingLedDisplay.colorForDBValue(
-            led: ledNumber,
-            value: gain.value
-        )
-
-        return color.rawValue
-    }
-
-    func setVolume(led ledNumber: Int, toIntensity ledIntensity: Int) async throws {
-        guard let color = RingLedDisplay.LedColor(rawValue: ledIntensity) else {
-            throw MOMStatus.invalidParameter
-        }
-
-        guard let bridge else { return }
-        bridge.updateRingLedDisplay(led: ledNumber, to: color)
-
-        if let dBValue = bridge.ringLedDisplay.dBValue {
-            gain.value = dBValue
-        }
-    }
-
-    func reset() async {
-        gain.value = 0.0
-    }
-
-    required init(from decoder: Decoder) throws {
-        throw Ocp1Error.notImplemented
-    }
+  required init(from decoder: Decoder) throws {
+    throw Ocp1Error.notImplemented
+  }
 }

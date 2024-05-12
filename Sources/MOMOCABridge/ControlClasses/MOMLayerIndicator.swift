@@ -21,64 +21,64 @@ import SwiftOCA
 import SwiftOCADevice
 
 class MOMLayerIndicator: SwiftOCADevice.OcaUint8Sensor, MOMPanelControl {
-    override open class var classID: OcaClassID { OcaClassID(parent: super.classID, 65280) }
+  override open class var classID: OcaClassID { OcaClassID(parent: super.classID, 65280) }
 
-    weak var bridge: MOMOCABridge?
+  weak var bridge: MOMOCABridge?
 
-    init(bridge: MOMOCABridge) async throws {
-        self.bridge = bridge
-        try await super.init(
-            OcaBoundedPropertyValue<OcaUint8>(value: 1, in: 1...4),
-            role: "Selected Layer",
-            deviceDelegate: bridge.device,
-            addToRootBlock: false
-        )
-        state = .valid
+  init(bridge: MOMOCABridge) async throws {
+    self.bridge = bridge
+    try await super.init(
+      OcaBoundedPropertyValue<OcaUint8>(value: 1, in: 1...4),
+      role: "Selected Layer",
+      deviceDelegate: bridge.device,
+      addToRootBlock: false
+    )
+    state = .valid
+  }
+
+  required init(from decoder: Decoder) throws {
+    throw Ocp1Error.notImplemented
+  }
+
+  override open func handleCommand(
+    _ command: Ocp1Command,
+    from controller: OcaController
+  ) async throws -> Ocp1Response {
+    do {
+      return try await handleCommonMomCommand(command, from: controller)
+    } catch let error as MOMStatus where error == .continue {
+      return try await super.handleCommand(command, from: controller)
     }
+  }
 
-    required init(from decoder: Decoder) throws {
-        throw Ocp1Error.notImplemented
+  func isLayerSelected(led ledNumber: Int) -> Bool {
+    precondition(ledNumber > RingLedDisplay.LedCount)
+    precondition(ledNumber - RingLedDisplay.LedCount <= MOMOCABridge.LayerCount)
+
+    return Int(reading.value) == ledNumber - RingLedDisplay.LedCount
+  }
+
+  func setSelectedLayer(led ledNumber: Int, to state: Int) async throws {
+    precondition(ledNumber > RingLedDisplay.LedCount)
+    precondition(ledNumber - RingLedDisplay.LedCount <= MOMOCABridge.LayerCount)
+
+    let layerNumber = ledNumber - RingLedDisplay.LedCount
+
+    if state == 1 {
+      reading.value = OcaUint8(layerNumber)
+      await layerDidChange()
     }
+  }
 
-    override open func handleCommand(
-        _ command: Ocp1Command,
-        from controller: OcaController
-    ) async throws -> Ocp1Response {
-        do {
-            return try await handleCommonMomCommand(command, from: controller)
-        } catch let error as MOMStatus where error == .continue {
-            return try await super.handleCommand(command, from: controller)
-        }
+  func layerDidChange() async {
+    guard let bridge else { return }
+    for keyID in MOMKeyID.allCases() {
+      let object = bridge.panel.object(keyID: keyID)
+      try? await object.labelDidChange()
     }
+  }
 
-    func isLayerSelected(led ledNumber: Int) -> Bool {
-        precondition(ledNumber > RingLedDisplay.LedCount)
-        precondition(ledNumber - RingLedDisplay.LedCount <= MOMOCABridge.LayerCount)
-
-        return Int(reading.value) == ledNumber - RingLedDisplay.LedCount
-    }
-
-    func setSelectedLayer(led ledNumber: Int, to state: Int) async throws {
-        precondition(ledNumber > RingLedDisplay.LedCount)
-        precondition(ledNumber - RingLedDisplay.LedCount <= MOMOCABridge.LayerCount)
-
-        let layerNumber = ledNumber - RingLedDisplay.LedCount
-
-        if state == 1 {
-            reading.value = OcaUint8(layerNumber)
-            await layerDidChange()
-        }
-    }
-
-    func layerDidChange() async {
-        guard let bridge else { return }
-        for keyID in MOMKeyID.allCases() {
-            let object = bridge.panel.object(keyID: keyID)
-            try? await object.labelDidChange()
-        }
-    }
-
-    func reset() async {
-        await layerDidChange()
-    }
+  func reset() async {
+    await layerDidChange()
+  }
 }

@@ -17,69 +17,69 @@
 import Foundation
 
 extension UUID {
-    var base64String: String {
-        var buffer = [UInt8](repeating: 0, count: 16)
+  var base64String: String {
+    var buffer = [UInt8](repeating: 0, count: 16)
 
-        (self as NSUUID).getBytes(&buffer)
+    (self as NSUUID).getBytes(&buffer)
 
-        let data = NSData(bytes: &buffer, length: buffer.count)
-        let base64 = data.base64EncodedString(options: NSData.Base64EncodingOptions())
+    let data = NSData(bytes: &buffer, length: buffer.count)
+    let base64 = data.base64EncodedString(options: NSData.Base64EncodingOptions())
 
-        return base64.replacingOccurrences(of: "=", with: "")
+    return base64.replacingOccurrences(of: "=", with: "")
+  }
+
+  // https://gist.github.com/xsleonard/b28573142215e25858bebb9ba907829c
+  static func from(data: Data?) -> UUID? {
+    guard data?.count == MemoryLayout<uuid_t>.size else {
+      return nil
+    }
+    return data?.withUnsafeBytes {
+      guard let baseAddress = $0.bindMemory(to: UInt8.self).baseAddress else {
+        return nil
+      }
+      return NSUUID(uuidBytes: baseAddress) as UUID
+    }
+  }
+
+  static func from(hexString: String) -> UUID? {
+    UUID.from(data: Data(hex: hexString))
+  }
+
+  var data: Data {
+    withUnsafeBytes(of: uuid) { Data($0) }
+  }
+
+  var hexString: String {
+    data.toHexString()
+  }
+
+  static var nullUUID: UUID {
+    NSUUID(uuidBytes: [UInt8](repeating: 0, count: 16)) as UUID
+  }
+
+  static var platformUUID: UUID? {
+    #if canImport(Darwin)
+    let platformExpertDevice = IOServiceMatching("IOPlatformExpertDevice")
+    let platformExpert: io_service_t = IOServiceGetMatchingService(
+      kIOMasterPortDefault,
+      platformExpertDevice
+    )
+    defer { IOObjectRelease(platformExpert) }
+
+    let serialNumberAsCFString = IORegistryEntryCreateCFProperty(
+      platformExpert,
+      kIOPlatformUUIDKey as CFString,
+      kCFAllocatorDefault,
+      0
+    )
+    guard let serialNumberUUIDString = serialNumberAsCFString?.takeRetainedValue() as? String
+    else {
+      return nil
     }
 
-    // https://gist.github.com/xsleonard/b28573142215e25858bebb9ba907829c
-    static func from(data: Data?) -> UUID? {
-        guard data?.count == MemoryLayout<uuid_t>.size else {
-            return nil
-        }
-        return data?.withUnsafeBytes {
-            guard let baseAddress = $0.bindMemory(to: UInt8.self).baseAddress else {
-                return nil
-            }
-            return NSUUID(uuidBytes: baseAddress) as UUID
-        }
-    }
-
-    static func from(hexString: String) -> UUID? {
-        UUID.from(data: Data(hex: hexString))
-    }
-
-    var data: Data {
-        withUnsafeBytes(of: uuid) { Data($0) }
-    }
-
-    var hexString: String {
-        data.toHexString()
-    }
-
-    static var nullUUID: UUID {
-        NSUUID(uuidBytes: [UInt8](repeating: 0, count: 16)) as UUID
-    }
-
-    static var platformUUID: UUID? {
-        #if canImport(Darwin)
-        let platformExpertDevice = IOServiceMatching("IOPlatformExpertDevice")
-        let platformExpert: io_service_t = IOServiceGetMatchingService(
-            kIOMasterPortDefault,
-            platformExpertDevice
-        )
-        defer { IOObjectRelease(platformExpert) }
-
-        let serialNumberAsCFString = IORegistryEntryCreateCFProperty(
-            platformExpert,
-            kIOPlatformUUIDKey as CFString,
-            kCFAllocatorDefault,
-            0
-        )
-        guard let serialNumberUUIDString = serialNumberAsCFString?.takeRetainedValue() as? String
-        else {
-            return nil
-        }
-
-        return Self(uuidString: serialNumberUUIDString)
-        #else
-        return nullUUID
-        #endif
-    }
+    return Self(uuidString: serialNumberUUIDString)
+    #else
+    return nullUUID
+    #endif
+  }
 }

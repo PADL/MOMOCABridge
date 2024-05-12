@@ -21,32 +21,32 @@ import SwiftOCA
 import SwiftOCADevice
 
 class MOMIdentificationSensor: SwiftOCADevice.OcaIdentificationSensor, MOMPanelControl {
-    weak var bridge: MOMOCABridge?
+  weak var bridge: MOMOCABridge?
 
-    init(bridge: MOMOCABridge) async throws {
-        self.bridge = bridge
-        try await super.init(
-            role: "Identify",
-            deviceDelegate: bridge.device,
-            addToRootBlock: false
-        )
-        state = .valid
+  init(bridge: MOMOCABridge) async throws {
+    self.bridge = bridge
+    try await super.init(
+      role: "Identify",
+      deviceDelegate: bridge.device,
+      addToRootBlock: false
+    )
+    state = .valid
+  }
+
+  required init(from decoder: Decoder) throws {
+    throw Ocp1Error.notImplemented
+  }
+
+  override open func handleCommand(
+    _ command: Ocp1Command,
+    from controller: OcaController
+  ) async throws -> Ocp1Response {
+    do {
+      return try await handleCommonMomCommand(command, from: controller)
+    } catch let error as MOMStatus where error == .continue {
+      return try await super.handleCommand(command, from: controller)
     }
+  }
 
-    required init(from decoder: Decoder) throws {
-        throw Ocp1Error.notImplemented
-    }
-
-    override open func handleCommand(
-        _ command: Ocp1Command,
-        from controller: OcaController
-    ) async throws -> Ocp1Response {
-        do {
-            return try await handleCommonMomCommand(command, from: controller)
-        } catch let error as MOMStatus where error == .continue {
-            return try await super.handleCommand(command, from: controller)
-        }
-    }
-
-    func reset() async {}
+  func reset() async {}
 }

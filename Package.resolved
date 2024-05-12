@@ -15,7 +15,7 @@
       "location" : "https://github.com/lhoward/AsyncExtensions",
       "state" : {
         "branch" : "linux",
-        "revision" : "2218eaa30dbdb39b063e92644fc28ed22e2cb942"
+        "revision" : "0d96d3550ef94f83c2f300021f9985e4fb44f7af"
       }
     },
     {
@@ -33,7 +33,7 @@
       "location" : "https://github.com/PADL/MOM.git",
       "state" : {
         "branch" : "main",
-        "revision" : "1f7f41f578cfba1aa16159f33ec652a9457b5643"
+        "revision" : "967c66ba676f3d064091abf3a423e7510d8a739f"
       }
     },
     {
@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-async-algorithms",
       "state" : {
-        "revision" : "9cfed92b026c524674ed869a4ff2dcfdeedf8a2a",
-        "version" : "0.1.0"
+        "revision" : "da4e36f86544cdf733a40d59b3a2267e3a7bbf36",
+        "version" : "1.0.0"
       }
     },
     {
@@ -64,12 +64,21 @@
       }
     },
     {
+      "identity" : "swift-system",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-system",
+      "state" : {
+        "revision" : "025bcb1165deab2e20d4eaba79967ce73013f496",
+        "version" : "1.2.1"
+      }
+    },
+    {
       "identity" : "swiftoca",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PADL/SwiftOCA.git",
       "state" : {
         "branch" : "main",
-        "revision" : "5ce1af9243667a24f6235e97e16a2ac5cb3e01d2"
+        "revision" : "59bde6bc1110c19ac6360d91a1ea0a6c2639aa60"
       }
     },
     {

@@ -17,13 +17,13 @@
 import Foundation
 
 public extension Data {
-    func toHexString() -> String {
-        map { String(format: "%02hhX", $0) }.joined()
-    }
+  func toHexString() -> String {
+    map { String(format: "%02hhX", $0) }.joined()
+  }
 }
 
 public extension Data {
-    init(hex: String) {
-        self.init([UInt8](hex: hex))
-    }
+  init(hex: String) {
+    self.init([UInt8](hex: hex))
+  }
 }

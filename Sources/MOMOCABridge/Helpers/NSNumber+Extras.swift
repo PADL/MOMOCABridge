@@ -18,17 +18,17 @@ import Foundation
 import Surrogate
 
 extension NSNumber {
-    var keyIDValue: MOMKeyID? {
-        MOMKeyID(rawValue: intValue)
-    }
+  var keyIDValue: MOMKeyID? {
+    MOMKeyID(rawValue: intValue)
+  }
 
-    var ledIDValue: MOMLedID? {
-        MOMLedID(rawValue: intValue)
-    }
+  var ledIDValue: MOMLedID? {
+    MOMLedID(rawValue: intValue)
+  }
 }
 
-extension Array where Element == Int {
-    var nsNumberArray: [AnyObject] {
-        map { NSNumber(value: $0) }
-    }
+extension [Int] {
+  var nsNumberArray: [AnyObject] {
+    map { NSNumber(value: $0) }
+  }
 }
