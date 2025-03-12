@@ -15,11 +15,15 @@
 //
 
 import MOMOCABridge
+import Foundation
 
 @main
 public enum MOMOCABridgeShell {
-  static func main() async throws {
-    let bridge = try await MOMOCABridge()
-    try await bridge.beginDiscoverability()
+  static func main() throws {
+    Task {
+      let bridge = try await MOMOCABridge()
+      try await bridge.beginDiscoverability()
+    }
+    RunLoop.main.run()
   }
 }
