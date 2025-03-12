@@ -20,8 +20,10 @@ import Foundation
 @main
 public enum MOMOCABridgeShell {
   static func main() throws {
+    var bridge: MOMOCABridge!
+
     Task {
-      let bridge = try await MOMOCABridge()
+      bridge = try await MOMOCABridge()
       try await bridge.beginDiscoverability()
     }
     RunLoop.main.run()
