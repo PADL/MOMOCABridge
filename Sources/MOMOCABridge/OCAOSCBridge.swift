@@ -72,6 +72,8 @@ public actor OCAOSCBridge: OcaController {
 }
 
 public extension OCAOSCBridge {
+  nonisolated var flags: OcaControllerFlags { [] }
+
   func addSubscription(
     _ subscription: SwiftOCADevice
       .OcaSubscriptionManagerSubscription

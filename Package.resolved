@@ -48,7 +48,7 @@
     {
       "identity" : "mom",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/PADL/MOM",
+      "location" : "https://github.com/PADL/MOM.git",
       "state" : {
         "branch" : "main",
         "revision" : "967c66ba676f3d064091abf3a423e7510d8a739f"
@@ -122,8 +122,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/SwiftASCII",
       "state" : {
-        "revision" : "9708885ab4c3e6015f5b7b3d546afedd5afc320f",
-        "version" : "1.1.5"
+        "revision" : "ebeb819594bae044e9b0ac2757b9d7b63369e1f9",
+        "version" : "1.2.0"
       }
     },
     {
@@ -132,7 +132,7 @@
       "location" : "https://github.com/PADL/SwiftOCA",
       "state" : {
         "branch" : "main",
-        "revision" : "ba01c1d368362b0f8ee5dab5961ce018bd818716"
+        "revision" : "0913738faafa1c9fe99c828d537ad55643169b68"
       }
     },
     {
