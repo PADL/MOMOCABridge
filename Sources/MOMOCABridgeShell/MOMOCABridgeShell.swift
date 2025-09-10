@@ -14,8 +14,8 @@
 // limitations under the License.
 //
 
-import MOMOCABridge
 import Foundation
+import MOMOCABridge
 
 @main
 public enum MOMOCABridgeShell {
@@ -23,7 +23,7 @@ public enum MOMOCABridgeShell {
     var bridge: MOMOCABridge!
 
     Task {
-      bridge = try await MOMOCABridge()
+      bridge = try await MOMOCABridge(oscServerPort: 8000)
       try await bridge.beginDiscoverability()
     }
     RunLoop.main.run()

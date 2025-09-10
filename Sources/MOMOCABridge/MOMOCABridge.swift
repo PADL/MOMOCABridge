@@ -21,18 +21,25 @@ import MOM
 import Surrogate
 import SwiftOCA
 import SwiftOCADevice
+#if canImport(OSCKit)
+import OSCKit
+#endif
 
 extension MOMStatus: Error {}
 
 @OcaDevice
 public class MOMOCABridge {
-  static var defaultDeviceID = 50
+  static let defaultDeviceID = 50
 
   private var momController: MOMControllerRef!
   private var momDiscoverabilityStatus: MOMStatus = .socketError
   private(set) var panel: MOMPanel!
   private var momDeviceNotificationTask: Task<(), Never>?
   private var ocp1Task: Task<(), Error>?
+  #if canImport(OSCKit)
+  private let oscServer: OSCUDPServer?
+  private let oscBridge: OCAOSCBridge?
+  #endif
 
   let device = OcaDevice.shared
   let endpoint: Ocp1DeviceEndpoint
@@ -41,9 +48,12 @@ public class MOMOCABridge {
   deinit {
     momDeviceNotificationTask?.cancel()
     MOMControllerRelease(momController)
+    #if canImport(OSCKit)
+    oscServer?.stop()
+    #endif
   }
 
-  public init(port: UInt16 = 65000) async throws {
+  public init(port: UInt16 = 65000, oscServerPort: UInt16? = nil) async throws {
     var localAddress = sockaddr_in()
     localAddress.sin_family = sa_family_t(AF_INET)
     localAddress.sin_addr.s_addr = INADDR_ANY
@@ -57,6 +67,16 @@ public class MOMOCABridge {
     withUnsafeBytes(of: &localAddress) { bytes in
       localAddressData = Data(bytes: bytes.baseAddress!, count: bytes.count)
     }
+
+    #if canImport(OSCKit)
+    if let oscServerPort {
+      oscServer = OSCUDPServer(port: oscServerPort)
+      oscBridge = OCAOSCBridge(device: OcaDevice.shared)
+    } else {
+      oscServer = nil
+      oscBridge = nil
+    }
+    #endif
 
     try await device.initializeDefaultObjects()
 
@@ -85,6 +105,24 @@ public class MOMOCABridge {
         }
       }
     }
+
+    #if canImport(OSCKit)
+    if let oscServer {
+      log(message: "started OSC server on port \(oscServerPort!)")
+
+      oscServer.setReceiveHandler { [weak self] message, timeTag, host, port in
+        Task {
+          try await self?.oscBridge?.handle(
+            message: message,
+            timeTag: timeTag,
+            host: host,
+            port: port
+          )
+        }
+      }
+      try oscServer.start()
+    }
+    #endif
   }
 
   private func momControllerCreate() -> MOMControllerRef? {

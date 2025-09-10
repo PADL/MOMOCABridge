@@ -49,7 +49,7 @@ extension MOMPanelControl {
     switch command.methodID {
     case OcaMethodID("2.1"): // GetEnabled()
       try await ensureReadable(by: controller, command: command)
-      return try encodeResponse(await isConnectedToDadMan)
+      return try await encodeResponse(isConnectedToDadMan)
     case OcaMethodID("2.2"): // SetEnabled()
       try await ensureWritable(by: controller, command: command)
       fallthrough
@@ -97,7 +97,9 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
 
     try await super.init(role: "MOM", deviceDelegate: bridge.device, addToRootBlock: true)
 
-    for button in buttons { try await add(actionObject: button) }
+    for button in buttons {
+      try await add(actionObject: button)
+    }
     try await add(actionObject: external)
     try await add(actionObject: gain)
     try await add(actionObject: layer)
