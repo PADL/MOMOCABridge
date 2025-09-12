@@ -18,12 +18,10 @@ import CoreFoundation
 import FlyingSocks
 import Foundation
 import MOM
+import OSCOCABridge
 import Surrogate
 import SwiftOCA
 import SwiftOCADevice
-#if canImport(OSCKit)
-import OSCKit
-#endif
 
 extension MOMStatus: Error {}
 
@@ -36,10 +34,7 @@ public class MOMOCABridge {
   private(set) var panel: MOMPanel!
   private var momDeviceNotificationTask: Task<(), Never>?
   private var ocp1Task: Task<(), Error>?
-  #if canImport(OSCKit)
-  private let oscServer: OSCUDPServer?
-  private let oscBridge: OCAOSCBridge?
-  #endif
+  private let oscBridge: OSCOCABridge?
 
   let device = OcaDevice.shared
   let endpoint: Ocp1DeviceEndpoint
@@ -48,9 +43,6 @@ public class MOMOCABridge {
   deinit {
     momDeviceNotificationTask?.cancel()
     MOMControllerRelease(momController)
-    #if canImport(OSCKit)
-    oscServer?.stop()
-    #endif
   }
 
   public init(port: UInt16 = 65000, oscServerPort: UInt16? = nil) async throws {
@@ -68,15 +60,12 @@ public class MOMOCABridge {
       localAddressData = Data(bytes: bytes.baseAddress!, count: bytes.count)
     }
 
-    #if canImport(OSCKit)
     if let oscServerPort {
-      oscServer = OSCUDPServer(port: oscServerPort)
-      oscBridge = OCAOSCBridge(device: OcaDevice.shared)
+      localAddress.sin_port = oscServerPort.bigEndian
+      oscBridge = OSCOCABridge(address: localAddress, device: OcaDevice.shared)
     } else {
-      oscServer = nil
       oscBridge = nil
     }
-    #endif
 
     try await device.initializeDefaultObjects()
 
@@ -106,23 +95,10 @@ public class MOMOCABridge {
       }
     }
 
-    #if canImport(OSCKit)
-    if let oscServer {
+    if let oscBridge {
       log(message: "started OSC server on port \(oscServerPort!)")
-
-      oscServer.setReceiveHandler { [weak self] message, timeTag, host, port in
-        Task {
-          try await self?.oscBridge?.handle(
-            message: message,
-            timeTag: timeTag,
-            host: host,
-            port: port
-          )
-        }
-      }
-      try oscServer.start()
+      await oscBridge.run()
     }
-    #endif
   }
 
   private func momControllerCreate() -> MOMControllerRef? {
