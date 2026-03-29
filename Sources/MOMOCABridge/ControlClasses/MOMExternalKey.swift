@@ -82,4 +82,20 @@ class MOMExternalKey: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
   required init(from decoder: Decoder) throws {
     throw Ocp1Error.notImplemented
   }
+
+  public required init(
+    objectNumber: OcaONo? = nil,
+    lockable: OcaBoolean = true,
+    role: OcaString? = nil,
+    deviceDelegate: OcaDevice? = nil,
+    addToRootBlock: Bool = true
+  ) async throws {
+    try await super.init(
+      objectNumber: objectNumber,
+      lockable: lockable,
+      role: role,
+      deviceDelegate: deviceDelegate,
+      addToRootBlock: addToRootBlock
+    )
+  }
 }

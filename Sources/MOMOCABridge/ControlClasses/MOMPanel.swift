@@ -110,6 +110,50 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
     throw Ocp1Error.notImplemented
   }
 
+  public required init(
+    objectNumber: OcaONo? = nil,
+    lockable: OcaBoolean = true,
+    role: OcaString? = nil,
+    deviceDelegate: OcaDevice? = nil,
+    addToRootBlock: Bool = true
+  ) async throws {
+    external = try await MOMExternalKey(
+      objectNumber: nil,
+      lockable: true,
+      role: nil,
+      deviceDelegate: deviceDelegate,
+      addToRootBlock: false
+    )
+    gain = try await MOMSteppedGainControl(
+      objectNumber: nil,
+      lockable: true,
+      role: nil,
+      deviceDelegate: deviceDelegate,
+      addToRootBlock: false
+    )
+    layer = try await MOMLayerIndicator(
+      objectNumber: nil,
+      lockable: true,
+      role: nil,
+      deviceDelegate: deviceDelegate,
+      addToRootBlock: false
+    )
+    identificationSensor = try await MOMIdentificationSensor(
+      objectNumber: nil,
+      lockable: true,
+      role: nil,
+      deviceDelegate: deviceDelegate,
+      addToRootBlock: false
+    )
+    try await super.init(
+      objectNumber: objectNumber,
+      lockable: lockable,
+      role: role,
+      deviceDelegate: deviceDelegate,
+      addToRootBlock: addToRootBlock
+    )
+  }
+
   override open func handleCommand(
     _ command: Ocp1Command,
     from controller: OcaController
