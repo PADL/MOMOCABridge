@@ -16,7 +16,6 @@
 
 import Foundation
 import MOM
-import Surrogate
 import SwiftOCA
 import SwiftOCADevice
 
@@ -64,14 +63,15 @@ class MOMSteppedGainControl: SwiftOCADevice.OcaGain, MOMPanelControl {
 
   func getRotationCount(
     event: MOMEvent,
-    with params: inout [AnyObject]
+    with params: inout [MOMParameter]
   ) async throws {
-    params.insert(NSNumber(value: rotaryEncoder.rotationCount), at: 0)
+    params.insert(.int(Int32(rotaryEncoder.rotationCount)), at: 0)
   }
 
   func notifyRotationCount() async {
-    let params: [Int] = [MOMStatus.success.rawValue, Int(rotaryEncoder.rotationCount)]
-    bridge?.notify(event: MOMEvent.getRotationCount, params: params.nsNumberArray)
+    let params: [MOMParameter] = [.int(Int32(MOMStatus.success.rawValue)),
+                              .int(Int32(rotaryEncoder.rotationCount))]
+    bridge?.notify(event: .getRotationCount, params: params)
   }
 
   func rotateEncoder(to newValueDB: OcaDB, from oldValueDB: OcaDB) async {

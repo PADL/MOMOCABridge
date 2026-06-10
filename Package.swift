@@ -26,6 +26,7 @@ let package = Package(
     // Dependencies declare other packages that this package depends on.
     // .package(url: /* package url */, from: "1.0.0"),
     .package(url: "https://github.com/PADL/MOM", branch: "main"),
+    .package(url: "https://github.com/apple/swift-log", from: "1.5.0"),
     .package(url: "https://github.com/PADL/SwiftOCA", branch: "main"),
     .package(url: "https://github.com/PADL/OSCOCABridge", branch: "main"),
   ],
@@ -46,6 +47,7 @@ let package = Package(
       name: "MOMOCABridgeShell",
       dependencies: [
         "MOMOCABridge",
+        .product(name: "Logging", package: "swift-log"),
       ]
     ),
   ]

@@ -16,7 +16,6 @@
 
 import Foundation
 import MOM
-import Surrogate
 import SwiftOCA
 import SwiftOCADevice
 
@@ -69,12 +68,12 @@ class MOMExternalKey: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
     return Ocp1Response()
   }
 
-  func getKeyState(event: MOMEvent, with params: inout [AnyObject]) async throws {
+  func getKeyState(event: MOMEvent, with params: inout [MOMParameter]) async throws {
     if params.count < 1 {
       throw MOMStatus.invalidRequest
     }
 
-    params.insert(NSNumber(value: 0), at: 1)
+    params.insert(.int(0), at: 1)
   }
 
   func reset() async {}

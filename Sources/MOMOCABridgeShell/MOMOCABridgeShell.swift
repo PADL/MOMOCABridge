@@ -15,11 +15,16 @@
 //
 
 import Foundation
+import Logging
 import MOMOCABridge
 
 @main
 public enum MOMOCABridgeShell {
   static func main() throws {
+    // The application owns the logging backend; libraries (MOM) log to
+    // whatever is bootstrapped here.
+    LoggingSystem.bootstrap(StreamLogHandler.standardError)
+
     var bridge: MOMOCABridge!
 
     Task {

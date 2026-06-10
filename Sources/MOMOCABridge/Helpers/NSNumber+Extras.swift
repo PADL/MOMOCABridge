@@ -15,20 +15,25 @@
 //
 
 import Foundation
-import Surrogate
+import MOM
 
-extension NSNumber {
+extension MOMParameter {
   var keyIDValue: MOMKeyID? {
-    MOMKeyID(rawValue: intValue)
+    guard case let .int(value) = self else { return nil }
+    return MOMKeyID(rawValue: Int(value))
   }
 
   var ledIDValue: MOMLedID? {
-    MOMLedID(rawValue: intValue)
+    guard case let .int(value) = self else { return nil }
+    return MOMLedID(rawValue: Int(value))
   }
-}
 
-extension [Int] {
-  var nsNumberArray: [AnyObject] {
-    map { NSNumber(value: $0) }
+  /// The wire encodes booleans as bare 0/1 integers.
+  var boolValue: Bool? {
+    switch self {
+    case let .bool(value): return value
+    case let .int(value): return value != 0
+    default: return nil
+    }
   }
 }

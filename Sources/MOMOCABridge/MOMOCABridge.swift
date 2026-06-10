@@ -14,22 +14,24 @@
 // limitations under the License.
 //
 
-import CoreFoundation
 import FlyingSocks
 import Foundation
 import MOM
 import OSCOCABridge
-import Surrogate
 import SwiftOCA
 import SwiftOCADevice
 
-extension MOMStatus: Error {}
+// UserDefaults keys, preserved verbatim from the C Surrogate constants so
+// existing user settings carry over.
+private let kMOMDeviceIDDefaultsKey = "kMOMDeviceID"
+private let kMOMDeviceNameDefaultsKey = "kMOMDeviceName"
+private let kMOMLedIntensityDefaultsKey = "kMOMLedIntensity"
 
 @OcaDevice
 public class MOMOCABridge {
-  static let defaultDeviceID = 50
+  static let defaultDeviceID: Int32 = 50
 
-  private var momController: MOMControllerRef!
+  private var momController: MOMController!
   private var momDiscoverabilityStatus: MOMStatus = .socketError
   private(set) var panel: MOMPanel!
   private var momDeviceNotificationTask: Task<(), Never>?
@@ -42,7 +44,6 @@ public class MOMOCABridge {
 
   deinit {
     momDeviceNotificationTask?.cancel()
-    MOMControllerRelease(momController)
   }
 
   public init(port: UInt16 = 65000, oscServerPort: UInt16? = nil) async throws {
@@ -79,17 +80,17 @@ public class MOMOCABridge {
       guard let deviceManager = await self.device.deviceManager else { return }
       Task {
         for try await deviceName in deviceManager.$deviceName {
-          let params: [AnyObject] = [NSNumber(value: MOMStatus.success.rawValue),
-                                     deviceName as NSString,
-                                     deviceManager.userInventoryCode as NSString]
+          let params: [MOMParameter] = [.int(Int32(MOMStatus.success.rawValue)),
+                                    .string(deviceName),
+                                    .string(deviceManager.userInventoryCode)]
           self.notify(event: .getDeviceID, params: params)
         }
       }
       Task {
         for try await deviceID in deviceManager.$userInventoryCode {
-          let params: [AnyObject] = [NSNumber(value: MOMStatus.success.rawValue),
-                                     deviceManager.deviceName as NSString,
-                                     deviceID as NSString]
+          let params: [MOMParameter] = [.int(Int32(MOMStatus.success.rawValue)),
+                                    .string(deviceManager.deviceName),
+                                    .string(deviceID)]
           self.notify(event: .getDeviceID, params: params)
         }
       }
@@ -101,51 +102,43 @@ public class MOMOCABridge {
     }
   }
 
-  private func momControllerCreate() -> MOMControllerRef? {
-    let options = NSMutableDictionary()
+  private func momControllerCreate() -> MOMController {
+    var options = MOMOptions()
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
     let appBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
 
-    options[kMOMRecoveryFirmwareTag] = "version"
-    options[kMOMRecoveryFirmwareVersion] = "SoftMOM \(appVersion ?? "0.0").\(appBuild ?? "0")"
-    options[kMOMDeviceID] = deviceID ?? Self.defaultDeviceID
-    options[kMOMDeviceName] = deviceName ?? "MOMOCABridge"
-    // options[kMOMLocalInterfaceAddress]      = self.localInterfaceAddress
-    options[kMOMSerialNumber] = serialNumber
+    options.recoveryFirmwareTag = "version"
+    options.recoveryFirmwareVersion = "SoftMOM \(appVersion ?? "0.0").\(appBuild ?? "0")"
+    options.deviceID = deviceID ?? Self.defaultDeviceID
+    options.deviceName = deviceName ?? "MOMOCABridge"
+    // options.localInterfaceAddress = self.localInterfaceAddress
+    if let serialNumber {
+      options.serialNumber = serialNumber
+    }
 
     log(message: "starting controller with \(options)")
 
-    let momController = MOMControllerCreate(
-      kCFAllocatorDefault,
-      options,
-      RunLoop.main
-        .getCFRunLoop()
-    ) { [weak self] (
-      controller: MOMControllerRef,
-      context: OpaquePointer,
-      event: MOMEvent,
-      params: CFArray,
-      sendReply: MOMSendReplyCallback?
-    ) -> MOMStatus in
+    return MOMController(
+      options: options,
+      queue: DispatchQueue(label: "com.padl.MOMOCABridge.controller")
+    ) { [weak self] controller, peer, event, params, sendReply in
       guard let self else { return .continue }
       Task<(), Never> {
-        var params = params as [AnyObject]
+        var params = params
         var status = MOMStatus.continue
 
         do {
-          try await self.handle(event: MOMEventGetEvent(event), with: &params)
+          try await self.handle(event: event.event, with: &params)
           status = .success
         } catch let error as MOMStatus {
           status = error
         } catch {}
         if let sendReply {
-          _ = sendReply(controller, context, event, status, params as NSArray)
+          _ = sendReply(controller, peer, event, status, params)
         }
       }
       return .success
     }
-
-    return momController
   }
 
   public func endDiscoverability() throws {
@@ -159,7 +152,7 @@ public class MOMOCABridge {
     }
 
     log(message: "ending discoverability")
-    MOMControllerEndDiscoverability(momController)
+    _ = momController.endDiscoverability()
     momDiscoverabilityStatus = .socketError
   }
 
@@ -170,14 +163,13 @@ public class MOMOCABridge {
       throw MOMStatus.invalidParameter
     }
 
-    momDiscoverabilityStatus = MOMControllerBeginDiscoverability(momController)
+    momDiscoverabilityStatus = momController.beginDiscoverability()
     guard momDiscoverabilityStatus == .success else {
       log(message: "failed to begin discoverability")
       throw momDiscoverabilityStatus
     }
 
-    let options = MOMControllerGetOptions(momController) as NSMutableDictionary
-    log(message: "begun discoverability with options \(options)")
+    log(message: "begun discoverability with options \(momController.options)")
 
     ocp1Task = Task { try await endpoint.run() }
   }
@@ -187,7 +179,7 @@ public class MOMOCABridge {
       throw MOMStatus.invalidParameter
     }
 
-    let status = MOMControllerAnnounceDiscoverability(momController)
+    let status = momController.announceDiscoverability()
     guard status == .success else {
       throw status
     }
@@ -197,20 +189,12 @@ public class MOMOCABridge {
     NSLog("\(message)")
   }
 
-  func notify(event: MOMEvent, params: [AnyObject]) {
-    MOMControllerNotify(momController, event, params as NSArray)
+  func notify(event: MOMEvent, params: [MOMParameter]) {
+    _ = momController.notify(event, params: params)
   }
 
-  func notifyDeferred(event: MOMEvent, params: [AnyObject]) {
-    MOMControllerNotifyDeferred(momController, event, params as NSArray)
-  }
-
-  func sendDeferred() {
-    MOMControllerSendDeferred(momController)
-  }
-
-  var options: [NSString: AnyObject] {
-    MOMControllerGetOptions(momController) as! [NSString: AnyObject]
+  var options: MOMOptions {
+    momController.options
   }
 
   func reset() async {
@@ -220,38 +204,37 @@ public class MOMOCABridge {
   }
 }
 
-private let kMOMLedIntensity = "kMOMLedIntensity"
-
 extension MOMOCABridge {
   private var userDefaults: UserDefaults {
     UserDefaults.standard
   }
 
-  var deviceID: Int? {
+  var deviceID: Int32? {
     get {
-      userDefaults.object(forKey: kMOMDeviceID as String) as? Int
+      (userDefaults.object(forKey: kMOMDeviceIDDefaultsKey) as? Int).map { Int32($0) }
     }
     set {
-      userDefaults.set(newValue, forKey: kMOMDeviceID as String)
+      userDefaults.set(newValue.map { Int($0) }, forKey: kMOMDeviceIDDefaultsKey)
     }
   }
 
   var deviceName: String? {
     get {
-      userDefaults.object(forKey: kMOMDeviceName as String) as? String
+      userDefaults.object(forKey: kMOMDeviceNameDefaultsKey) as? String
     }
     set {
-      userDefaults.set(newValue, forKey: kMOMDeviceName as String)
+      userDefaults.set(newValue, forKey: kMOMDeviceNameDefaultsKey)
     }
   }
 
   var ledIntensity: MOMLedIntensity? {
     get {
-      userDefaults.object(forKey: kMOMLedIntensity) as? MOMLedIntensity
+      (userDefaults.object(forKey: kMOMLedIntensityDefaultsKey) as? Int)
+        .flatMap(MOMLedIntensity.init(rawValue:))
     }
 
     set {
-      userDefaults.set(newValue, forKey: kMOMLedIntensity as String)
+      userDefaults.set(newValue?.rawValue, forKey: kMOMLedIntensityDefaultsKey)
     }
   }
 
@@ -293,11 +276,11 @@ extension MOMOCABridge {
   func refreshDeviceManager() async {
     guard let deviceManager = await device.deviceManager else { return }
 
-    deviceManager.serialNumber = options[kMOMSerialNumber] as! String
-    deviceManager.deviceName = options[kMOMDeviceName] as! String
-    deviceManager
-      .userInventoryCode = String(options[kMOMDeviceID] as? Int ?? Self.defaultDeviceID)
-    deviceManager.deviceRevisionID = options[kMOMSystemTypeAndVersion] as! String
+    let options = options
+    deviceManager.serialNumber = options.serialNumber
+    deviceManager.deviceName = options.deviceName
+    deviceManager.userInventoryCode = String(options.deviceID)
+    deviceManager.deviceRevisionID = options.systemTypeAndVersion
   }
 
   var serialNumber: String? {
@@ -317,8 +300,8 @@ extension MOMOCABridge {
 
   func withDeviceManager(
     event status: MOMEvent,
-    with params: inout [AnyObject],
-    _ block: @escaping (SwiftOCADevice.OcaDeviceManager, inout [AnyObject]) async throws -> ()
+    with params: inout [MOMParameter],
+    _ block: @escaping (SwiftOCADevice.OcaDeviceManager, inout [MOMParameter]) async throws -> ()
   ) async throws {
     guard let deviceManager = await device.deviceManager else {
       throw MOMStatus.continue
@@ -327,14 +310,14 @@ extension MOMOCABridge {
     try await block(deviceManager, &params)
   }
 
-  func setDeviceID(event status: MOMEvent, with params: inout [AnyObject]) async throws {
+  func setDeviceID(event status: MOMEvent, with params: inout [MOMParameter]) async throws {
     try await withDeviceManager(event: status, with: &params) { _, params in
-      if let deviceID = params[0] as? Int {
+      if case let .int(deviceID) = params.first {
         self.deviceID = deviceID
         await self.refreshDeviceManager()
       }
 
-      if let deviceName = params[1] as? String {
+      if params.count > 1, case let .string(deviceName) = params[1] {
         self.deviceName = deviceName
         await self.refreshDeviceManager()
       }
@@ -351,7 +334,7 @@ private extension OcaDeviceState {
 extension MOMOCABridge {
   private func portStatusChanged(
     event portStatus: MOMEvent,
-    with params: inout [AnyObject]
+    with params: inout [MOMParameter]
   ) async throws {
     try await withDeviceManager(event: portStatus, with: &params) { deviceManager, _ in
       let oldState = deviceManager.state
@@ -395,7 +378,7 @@ extension MOMOCABridge {
     }
   }
 
-  func handle(event: MOMEvent, with params: inout [AnyObject]) async throws {
+  func handle(event: MOMEvent, with params: inout [MOMParameter]) async throws {
     switch event {
     case .portError:
       fallthrough
@@ -412,11 +395,11 @@ extension MOMOCABridge {
     case .setDeviceID:
       try await setDeviceID(event: event, with: &params)
     case .getKeyState:
-      try await panel.object(keyID: params[0]).getKeyState(event: event, with: &params)
+      try await panel.object(keyID: params.first).getKeyState(event: event, with: &params)
     case .getLedState:
-      try await panel.object(ledID: params[0]).getLedState(event: event, with: &params)
+      try await panel.object(ledID: params.first).getLedState(event: event, with: &params)
     case .setLedState:
-      try await panel.object(ledID: params[0]).setLedState(event: event, with: &params)
+      try await panel.object(ledID: params.first).setLedState(event: event, with: &params)
     case .getLedIntensity:
       try await getLedIntensity(event: event, with: &params)
     case .setLedIntensity:
@@ -436,54 +419,54 @@ extension MOMOCABridge {
 extension MOMOCABridge {
   static let LayerCount = 4
 
-  func getRingLedState(event: MOMEvent, with params: inout [AnyObject]) async throws {
+  func getRingLedState(event: MOMEvent, with params: inout [MOMParameter]) async throws {
     if params.count < 1 {
       throw MOMStatus.invalidRequest
     }
 
-    guard let ledNumber = (params[0] as? NSNumber) else {
+    guard case let .int(ledNumber) = params[0] else {
       throw MOMStatus.invalidParameter
     }
 
-    if ledNumber.intValue < 1 ||
-      ledNumber.intValue > RingLedDisplay.LedCount + Self.LayerCount
+    if ledNumber < 1 ||
+      Int(ledNumber) > RingLedDisplay.LedCount + Self.LayerCount
     {
       throw MOMStatus.invalidParameter
     }
 
-    if ledNumber.intValue <= RingLedDisplay.LedCount {
-      params.insert(NSNumber(value: panel.gain.getVolume(led: ledNumber.intValue)), at: 1)
+    if Int(ledNumber) <= RingLedDisplay.LedCount {
+      params.insert(.int(Int32(panel.gain.getVolume(led: Int(ledNumber)))), at: 1)
     } else {
       params.insert(
-        NSNumber(value: panel.layer.isLayerSelected(led: ledNumber.intValue)),
+        .bool(panel.layer.isLayerSelected(led: Int(ledNumber))),
         at: 1
       )
     }
   }
 
-  func setRingLedState(event: MOMEvent, with params: inout [AnyObject]) async throws {
+  func setRingLedState(event: MOMEvent, with params: inout [MOMParameter]) async throws {
     if params.count < 2 {
       throw MOMStatus.invalidRequest
     }
 
-    guard let ledNumber = (params[0] as? NSNumber) else {
+    guard case let .int(ledNumber) = params[0] else {
       throw MOMStatus.invalidParameter
     }
 
-    if ledNumber.intValue < 1 ||
-      ledNumber.intValue > RingLedDisplay.LedCount + Self.LayerCount
+    if ledNumber < 1 ||
+      Int(ledNumber) > RingLedDisplay.LedCount + Self.LayerCount
     {
       throw MOMStatus.invalidParameter
     }
 
-    guard let ledParam = (params[1] as? NSNumber) else {
+    guard case let .int(ledParam) = params[1] else {
       throw MOMStatus.invalidParameter
     }
 
-    if ledNumber.intValue <= RingLedDisplay.LedCount {
-      try await panel.gain.setVolume(led: ledNumber.intValue, toIntensity: ledParam.intValue)
+    if Int(ledNumber) <= RingLedDisplay.LedCount {
+      try await panel.gain.setVolume(led: Int(ledNumber), toIntensity: Int(ledParam))
     } else {
-      try await panel.layer.setSelectedLayer(led: ledNumber.intValue, to: ledParam.intValue)
+      try await panel.layer.setSelectedLayer(led: Int(ledNumber), to: Int(ledParam))
     }
   }
 
@@ -497,24 +480,21 @@ extension MOMOCABridge {
 }
 
 extension MOMOCABridge {
-  func getLedIntensity(event: MOMEvent, with params: inout [AnyObject]) async throws {
-    if let ledIntensity {
-      params.insert(NSNumber(value: ledIntensity.rawValue), at: 0)
-    } else {
-      params.insert(NSNumber(value: MOMLedIntensity.normal.rawValue), at: 0)
-    }
+  func getLedIntensity(event: MOMEvent, with params: inout [MOMParameter]) async throws {
+    let intensity = ledIntensity ?? .normal
+    params.insert(.int(Int32(intensity.rawValue)), at: 0)
   }
 
-  func setLedIntensity(event: MOMEvent, with params: inout [AnyObject]) async throws {
+  func setLedIntensity(event: MOMEvent, with params: inout [MOMParameter]) async throws {
     if params.count < 1 {
       throw MOMStatus.invalidRequest
     }
 
-    guard let ledIntensityParam = (params[0] as? NSNumber)?.intValue else {
+    guard case let .int(ledIntensityParam) = params[0] else {
       throw MOMStatus.invalidParameter
     }
 
-    guard let ledIntensity = MOMLedIntensity(rawValue: ledIntensityParam) else {
+    guard let ledIntensity = MOMLedIntensity(rawValue: Int(ledIntensityParam)) else {
       throw MOMStatus.invalidParameter
     }
 

@@ -15,10 +15,11 @@
 //
 
 import Foundation
-import Surrogate
+import MOM
 import SwiftOCA
 import SwiftOCADevice
 
+@OcaDevice
 protocol MOMPanelControl: SwiftOCADevice.OcaRoot {
   var bridge: MOMOCABridge? { get }
 
@@ -170,8 +171,8 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
     keyID == .external ? external : buttons[keyID.rawValue - 1]
   }
 
-  func object(keyID: AnyObject) throws -> MOMKeyProtocol {
-    guard let keyID = (keyID as? NSNumber)?.keyIDValue else {
+  func object(keyID: MOMParameter?) throws -> MOMKeyProtocol {
+    guard let keyID = keyID?.keyIDValue else {
       throw MOMStatus.invalidParameter
     }
 
@@ -182,8 +183,8 @@ class MOMPanel: SwiftOCADevice.OcaBlock<SwiftOCADevice.OcaWorker>, MOMPanelContr
     object(keyID: ledID.keyID) as! MOMButton
   }
 
-  func object(ledID: AnyObject) throws -> MOMButton {
-    guard let ledID = (ledID as? NSNumber)?.ledIDValue else {
+  func object(ledID: MOMParameter?) throws -> MOMButton {
+    guard let ledID = ledID?.ledIDValue else {
       throw MOMStatus.invalidParameter
     }
 

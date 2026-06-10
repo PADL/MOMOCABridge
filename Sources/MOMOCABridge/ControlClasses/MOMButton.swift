@@ -16,7 +16,6 @@
 
 import Foundation
 import MOM
-import Surrogate
 import SwiftOCA
 import SwiftOCADevice
 
@@ -24,25 +23,23 @@ protocol MOMKeyProtocol: MOMPanelControl {
   var keyID: MOMKeyID { get }
   var bridge: MOMOCABridge? { get }
 
-  func getKeyState(event: MOMEvent, with params: inout [AnyObject]) async throws
+  func getKeyState(event: MOMEvent, with params: inout [MOMParameter]) async throws
 }
 
 extension MOMKeyProtocol {
   func notifyKeyDownUp(from controller: OcaController) async {
     guard let bridge else { return }
-    var params: [Int] = [MOMStatus.success.rawValue, keyID.rawValue, 0]
-    params[2] = 1 // key down
-    await bridge.notifyDeferred(event: MOMEvent.getKeyState, params: params.nsNumberArray)
-    params[2] = 0 // key up
-    await bridge.notifyDeferred(event: MOMEvent.getKeyState, params: params.nsNumberArray)
-    await bridge.sendDeferred()
+    let params: [MOMParameter] = [.int(Int32(MOMStatus.success.rawValue)),
+                              .int(Int32(keyID.rawValue))]
+    bridge.notify(event: .getKeyState, params: params + [.int(1)]) // key down
+    bridge.notify(event: .getKeyState, params: params + [.int(0)]) // key up
   }
 
   // this needs to be called every time we update the layer text or change layer
   func labelDidChange() async throws {
     guard let bridge else { return }
     let event = OcaEvent(emitterONo: objectNumber, eventID: OcaPropertyChangedEventID)
-    let parameters = await OcaPropertyChangedEventData<OcaString>(
+    let parameters = OcaPropertyChangedEventData<OcaString>(
       propertyID: OcaPropertyID("2.3"), // label
       propertyValue: bridge.userLabel(keyID: keyID, layer: bridge.selectedLayer),
       changeType: .currentChanged
@@ -107,35 +104,35 @@ class MOMButton: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
     return Ocp1Response()
   }
 
-  func getKeyState(event: MOMEvent, with params: inout [AnyObject]) async throws {
+  func getKeyState(event: MOMEvent, with params: inout [MOMParameter]) async throws {
     if params.count < 1 {
       throw MOMStatus.invalidRequest
     }
 
-    params.insert(NSNumber(value: setting), at: 1)
+    params.insert(.bool(setting), at: 1)
   }
 
-  func setLedState(event: MOMEvent, with params: inout [AnyObject]) async throws {
+  func setLedState(event: MOMEvent, with params: inout [MOMParameter]) async throws {
     if params.count < 2 {
       throw MOMStatus.invalidRequest
     }
 
-    guard let ledState = (params[1] as? NSNumber) else {
+    guard let ledState = params[1].boolValue else {
       throw MOMStatus.invalidParameter
     }
 
-    setting = ledState.boolValue
+    setting = ledState
     if keyID == .ref {
       bridge?.panel.gain.isGainAdjustable = !setting
     }
   }
 
-  func getLedState(event: MOMEvent, with params: inout [AnyObject]) async throws {
+  func getLedState(event: MOMEvent, with params: inout [MOMParameter]) async throws {
     if params.count < 1 {
       throw MOMStatus.invalidRequest
     }
 
-    params.insert(NSNumber(value: setting), at: 1)
+    params.insert(.bool(setting), at: 1)
   }
 
   func reset() async {

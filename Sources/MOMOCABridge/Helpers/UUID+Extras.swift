@@ -79,6 +79,13 @@ extension UUID {
 
     return Self(uuidString: serialNumberUUIDString)
     #else
+    // Linux: derive a stable identifier from the machine ID (32 hex chars,
+    // world-readable, survives reboots). DMI/devicetree serials often need
+    // root or don't exist on VMs, so machine-id is the dependable source.
+    if let machineID = try? String(contentsOfFile: "/etc/machine-id", encoding: .utf8),
+       let uuid = UUID.from(hexString: machineID.trimmingCharacters(in: .whitespacesAndNewlines)) {
+      return uuid
+    }
     return nullUUID
     #endif
   }
