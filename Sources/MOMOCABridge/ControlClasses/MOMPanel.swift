@@ -50,7 +50,7 @@ extension MOMPanelControl {
     switch command.methodID {
     case OcaMethodID("2.1"): // GetEnabled()
       try await ensureReadable(by: controller, command: command)
-      return try await encodeResponse(isConnectedToDadMan)
+      return try await controller.encodeResponse(isConnectedToDadMan, name: "Enabled")
     case OcaMethodID("2.2"): // SetEnabled()
       try await ensureWritable(by: controller, command: command)
       fallthrough
