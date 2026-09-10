@@ -82,7 +82,7 @@ class MOMButton: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
         guard let bridge else { throw Ocp1Error.status(.deviceError) }
         try await ensureReadable(by: controller, command: command)
         label = bridge.userLabel(keyID: keyID, layer: bridge.selectedLayer)
-        return try encodeResponse(label)
+        return try controller.encodeResponse(label, name: "Label")
       case OcaMethodID("2.9"):
         guard let bridge else { throw Ocp1Error.status(.deviceError) }
         try await ensureWritable(by: controller, command: command)
@@ -140,7 +140,7 @@ class MOMButton: SwiftOCADevice.OcaBooleanActuator, MOMKeyProtocol {
   }
 
   required init(from decoder: Decoder) throws {
-    throw Ocp1Error.notImplemented
+    throw DecodingError.objectNotDecodable(decoder)
   }
 
   public required init(
