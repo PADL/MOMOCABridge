@@ -39,7 +39,7 @@ public class MOMOCABridge {
   private let oscBridge: OSCOCABridge?
 
   let device = OcaDevice.shared
-  let endpoint: Ocp1DeviceEndpoint
+  let endpoint: OcaTCPDeviceEndpoint
   var ringLedDisplay = RingLedDisplay()
 
   deinit {
@@ -70,7 +70,7 @@ public class MOMOCABridge {
 
     try await device.initializeDefaultObjects()
 
-    endpoint = try await Ocp1DeviceEndpoint(address: localAddressData, device: device)
+    endpoint = try await OcaTCPDeviceEndpoint(address: localAddressData, device: device)
     panel = try await MOMPanel(bridge: self)
 
     momController = momControllerCreate()
