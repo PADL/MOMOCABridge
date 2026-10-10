@@ -29,7 +29,7 @@ class MOMIdentificationSensor: SwiftOCADevice.OcaIdentificationSensor, MOMPanelC
       deviceDelegate: bridge.device,
       addToRootBlock: false
     )
-    state = .valid
+    readingState = .valid
   }
 
   required init(from decoder: Decoder) throws {

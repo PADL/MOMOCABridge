@@ -32,7 +32,7 @@ class MOMLayerIndicator: SwiftOCADevice.OcaUint8Sensor, MOMPanelControl {
       deviceDelegate: bridge.device,
       addToRootBlock: false
     )
-    state = .valid
+    readingState = .valid
   }
 
   required init(from decoder: Decoder) throws {
